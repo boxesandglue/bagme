@@ -98,8 +98,9 @@ func main() {
 }
 ```
 
+<img src="https://i.imgur.com/xa9t10p.png" alt="typeset text from the frog king" width="500"/>
 
 
-Contact: <gundlach@speedata.de>
+Contact: <gundlach@speedata.de><br>
 Mastodon: [boxesandglue@typo.social](https://typo.social/@boxesandglue)
 
