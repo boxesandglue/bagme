@@ -10,7 +10,7 @@ import (
 type Document struct {
 	doc         *frontend.Document
 	c           *csshtml.CSS
-	stylesStack []*inheritStyles
+	stylesStack []*formattingStyles
 	te          []*frontend.Text
 }
 
@@ -46,7 +46,9 @@ func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledP
 	if err != nil {
 		return err
 	}
-	d.parseSelection(sel)
+	if err = d.parseSelection(sel); err != nil {
+		return err
+	}
 	for i, te := range d.te {
 		vl, _, err := d.doc.FormatParagraph(te, width)
 		if err != nil {
@@ -82,6 +84,7 @@ func New(filename string) (*Document, error) {
 	if err != nil {
 		return nil, err
 	}
+	d.doc.Doc.CompressLevel = 0
 	if d.doc.Doc.DefaultLanguage, err = frontend.GetLanguage("en"); err != nil {
 		return nil, err
 	}
