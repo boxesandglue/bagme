@@ -46,7 +46,7 @@ func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledP
 	if err != nil {
 		return err
 	}
-	if err = d.parseSelection(sel); err != nil {
+	if err = d.parseSelection(sel,width); err != nil {
 		return err
 	}
 	for i, te := range d.te {
@@ -84,7 +84,6 @@ func New(filename string) (*Document, error) {
 	if err != nil {
 		return nil, err
 	}
-	d.doc.Doc.CompressLevel = 0
 	if d.doc.Doc.DefaultLanguage, err = frontend.GetLanguage("en"); err != nil {
 		return nil, err
 	}

@@ -1,12 +1,15 @@
 # bagme - boxes and glue made easy
 
-bagme is a proof of concept using the “boxes and glue” PDF library to format HTML fragments styled with CSS.
+bagme is a proof of concept using the (pure Go) “[boxes and glue](https://boxesandglue.dev)” PDF library to format HTML fragments styled with CSS.
 boxes and glue implements TeX's typesetting algorithms, so the idea is to get superb HTML rendering with almost no effort.
 
 The goal is to have a PDF rendering engine for your Go software without having to do a lot of programming.
 
 
 ## Sample code
+
+<img src="https://i.imgur.com/rGWsP8h.png" alt="typeset text from the frog king" width="500"/>
+
 
 ```go
 package main
@@ -15,7 +18,6 @@ import (
 	"log"
 
 	"github.com/speedata/bagme/document"
-
 	"github.com/speedata/boxesandglue/backend/bag"
 )
 
@@ -112,11 +114,9 @@ func main() {
 }
 ```
 
-<img src="https://i.imgur.com/rGWsP8h.png" alt="typeset text from the frog king" width="500"/>
-
 
 Contact: <gundlach@speedata.de><br>
 License: New BSD License<br>
-Status: Proof of concept, don't expect anything to work<br>
+Status: Alpha: don't use for production code<br>
 Mastodon: [boxesandglue@typo.social](https://typo.social/@boxesandglue)
 

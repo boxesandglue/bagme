@@ -1,23 +1,52 @@
 package document
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"golang.org/x/net/html"
+
 	"github.com/speedata/boxesandglue/backend/bag"
 	"github.com/speedata/boxesandglue/backend/color"
 	"github.com/speedata/boxesandglue/backend/node"
 	"github.com/speedata/boxesandglue/frontend"
-	"golang.org/x/net/html"
 )
 
-func (d *Document) parseFontSize(fs string, dflt bag.ScaledPoint) bag.ScaledPoint {
+func parseVerticalAlign(align string, styles *formattingStyles) frontend.VerticalAlignment {
+	switch align {
+	case "top":
+		return frontend.VAlignTop
+	case "middle":
+		return frontend.VAlignMiddle
+	case "bottom":
+		return frontend.VAlignBottom
+	case "inherit":
+		return styles.valign
+	default:
+		return frontend.VAlignDefault
+	}
+}
+
+func parseWidth(width string, dflt bag.ScaledPoint) (bag.ScaledPoint, error) {
+	if !strings.HasSuffix(width, "%") {
+		return 0, fmt.Errorf("no %% suffix")
+	}
+	wd, err := strconv.Atoi(strings.TrimSuffix(width, "%"))
+	if err != nil {
+		return 0, err
+	}
+
+	return bag.ScaledPoint(int(dflt) * wd / 100), nil
+}
+
+func parseRelativeSize(fs string, dflt bag.ScaledPoint) bag.ScaledPoint {
 	if strings.HasSuffix(fs, "em") {
 		prefix := strings.TrimSuffix(fs, "em")
 		factor, err := strconv.ParseFloat(prefix, 32)
 		if err != nil {
-			bag.Logger.Errorf("Cannot convert font size %s", fs)
+			bag.Logger.Errorf("Cannot convert relative size %s", fs)
 			return bag.MustSp("10pt")
 		}
 		return bag.ScaledPoint(float64(dflt) * factor)
@@ -42,7 +71,7 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 	// Resolve font size first, since some of the attributes depend on the
 	// current font size.
 	if v, ok := attributes["font-size"]; ok {
-		ih.fontsize = d.parseFontSize(v, d.currentStyle().fontsize)
+		ih.fontsize = parseRelativeSize(v, d.currentStyle().fontsize)
 	}
 
 	for k, v := range attributes {
@@ -63,13 +92,13 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 		case "color":
 			ih.color = d.c.FrontendDocument.GetColor(v)
 		case "margin-top":
-			ih.marginTop = d.parseFontSize(v, d.currentStyle().fontsize)
+			ih.marginTop = parseRelativeSize(v, d.currentStyle().fontsize)
 		case "margin-bottom":
-			ih.marginBottom = d.parseFontSize(v, d.currentStyle().fontsize)
+			ih.marginBottom = parseRelativeSize(v, d.currentStyle().fontsize)
 		case "font-family":
 			ih.fontfamily = d.doc.FindFontFamily(v)
 		case "line-height":
-			ih.lineheight = d.parseFontSize(v, d.currentStyle().lineheight)
+			ih.lineheight = parseRelativeSize(v, d.currentStyle().lineheight)
 		default:
 			// fmt.Println("unresolved attribute", k)
 		}
@@ -125,10 +154,15 @@ func (d *Document) collectHorizontalNodes(te *frontend.Text, item *htmlItem) err
 	return nil
 }
 
-func (d *Document) output(item *htmlItem) error {
+func (d *Document) output(item *htmlItem, currentWidth bag.ScaledPoint) error {
 	// always vertical items
 	styles := d.pushStyles()
 	d.stylesToStyles(styles, item.styles)
+	if item.data == "table" {
+		d.processTable(item, currentWidth)
+		d.popStyles()
+		return nil
+	}
 
 	var te *frontend.Text
 	cur := modeVertical
@@ -154,7 +188,7 @@ func (d *Document) output(item *htmlItem) error {
 				d.te = append(d.te, te)
 				te = nil
 			}
-			d.output(itm)
+			d.output(itm, currentWidth)
 		}
 	}
 	if te != nil {
@@ -164,10 +198,10 @@ func (d *Document) output(item *htmlItem) error {
 	return nil
 }
 
-func (d *Document) parseSelection(sel *goquery.Selection) error {
+func (d *Document) parseSelection(sel *goquery.Selection, wd bag.ScaledPoint) error {
 	h := &htmlItem{dir: modeVertical}
 	dumpElement(sel.Nodes[0], modeVertical, h)
-	return d.output(h)
+	return d.output(h, wd)
 }
 
 type formattingStyles struct {
@@ -179,6 +213,7 @@ type formattingStyles struct {
 	marginTop    bag.ScaledPoint
 	marginBottom bag.ScaledPoint
 	color        *color.Color
+	valign       frontend.VerticalAlignment
 	language     string
 }
 
@@ -192,6 +227,7 @@ func (is *formattingStyles) clone() *formattingStyles {
 		language:   is.language,
 		fontstyle:  is.fontstyle,
 		color:      is.color,
+		valign:     is.valign,
 	}
 	return newis
 }
