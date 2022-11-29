@@ -12,9 +12,13 @@ import (
 func (d *Document) processTr(item *htmlItem) (*frontend.TableRow, error) {
 	tr := &frontend.TableRow{}
 	for _, itm := range item.children {
-		if itm.data == "td" {
+		if itm.data == "td" || itm.data == "th" {
 			styles := d.pushStyles()
 			tc := &frontend.TableCell{}
+			borderLeftStyle := ""
+			borderRightStyle := ""
+			borderTopStyle := ""
+			borderBottomStyle := ""
 			for k, v := range itm.styles {
 				switch k {
 				case "padding-top":
@@ -41,10 +45,35 @@ func (d *Document) processTr(item *htmlItem) (*frontend.TableRow, error) {
 					tc.BorderLeftColor = d.doc.GetColor(v)
 				case "border-right-color":
 					tc.BorderRightColor = d.doc.GetColor(v)
+				case "border-top-style":
+					borderTopStyle = v
+				case "border-bottom-style":
+					borderBottomStyle = v
+				case "border-left-style":
+					borderLeftStyle = v
+				case "border-right-style":
+					borderRightStyle = v
 				case "vertical-align":
 					styles.valign = parseVerticalAlign(v, styles)
+				case "text-align":
+					styles.halign = parseHorizontalAlign(v, styles)
+				default:
+					// fmt.Println(v)
 				}
 			}
+			if borderTopStyle == "none" {
+				tc.BorderTopWidth = 0
+			}
+			if borderBottomStyle == "none" {
+				tc.BorderBottomWidth = 0
+			}
+			if borderLeftStyle == "none" {
+				tc.BorderLeftWidth = 0
+			}
+			if borderRightStyle == "none" {
+				tc.BorderRightWidth = 0
+			}
+
 			for k, v := range itm.attributes {
 				switch k {
 				case "rowspan":
@@ -62,6 +91,7 @@ func (d *Document) processTr(item *htmlItem) (*frontend.TableRow, error) {
 				}
 			}
 			tc.VAlign = styles.valign
+			tc.HAlign = styles.halign
 			if err := d.output(itm, 0); err != nil {
 				return nil, err
 			}
@@ -138,7 +168,7 @@ func (d *Document) processTable(item *htmlItem, maxwd bag.ScaledPoint) error {
 	var rows frontend.TableRows
 	var err error
 	for _, itm := range item.children {
-		if itm.data == "tbody" {
+		if itm.data == "thead" || itm.data == "tbody" {
 			styles := d.pushStyles()
 			for k, v := range itm.styles {
 				switch k {
@@ -149,11 +179,11 @@ func (d *Document) processTable(item *htmlItem, maxwd bag.ScaledPoint) error {
 			if rows, err = d.processTbody(itm); err != nil {
 				return err
 			}
+			tbl.Rows = append(tbl.Rows, rows...)
 			d.popStyles()
 		}
 	}
 
-	tbl.Rows = rows
 	vl, err := d.doc.BuildTable(tbl)
 	if err != nil {
 		return err

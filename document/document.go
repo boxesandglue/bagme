@@ -8,45 +8,135 @@ import (
 
 // Document is the main starting point of the PDF generation.
 type Document struct {
-	doc         *frontend.Document
-	c           *csshtml.CSS
-	stylesStack []*formattingStyles
-	te          []*frontend.Text
+	Title                 string
+	Author                string
+	Keywords              string // separated by comma
+	Creator               string
+	Subject               string
+	currentPageDimensions PageDimensions
+	doc                   *frontend.Document
+	c                     *csshtml.CSS
+	stylesStack           []*formattingStyles
+	te                    []*frontend.Text
+}
+
+// PageDimensions contains the page size and the margins of the page.
+type PageDimensions struct {
+	Width        bag.ScaledPoint
+	Height       bag.ScaledPoint
+	MarginLeft   bag.ScaledPoint
+	MarginRight  bag.ScaledPoint
+	MarginTop    bag.ScaledPoint
+	MarginBottom bag.ScaledPoint
+}
+
+var onecm = bag.MustSp("1cm")
+
+func (d *Document) initPage() error {
+	var err error
+	if d.doc.Doc.CurrentPage == nil {
+		if defaultPage, ok := d.c.Pages[""]; ok {
+			wdStr, htStr := csshtml.PapersizeWdHt(defaultPage.Papersize)
+			var wd, ht, mt, mb, ml, mr bag.ScaledPoint
+			if wd, err = bag.Sp(wdStr); err != nil {
+				return err
+			}
+			if ht, err = bag.Sp(htStr); err != nil {
+				return err
+			}
+
+			if str := defaultPage.MarginTop; str == "" {
+				mt = onecm
+			} else {
+				if mt, err = bag.Sp(str); err != nil {
+					return err
+				}
+			}
+
+			if str := defaultPage.MarginBottom; str == "" {
+				mb = onecm
+			} else {
+				if mb, err = bag.Sp(str); err != nil {
+					return err
+				}
+			}
+			if str := defaultPage.MarginLeft; str == "" {
+				ml = onecm
+			} else {
+				if ml, err = bag.Sp(str); err != nil {
+					return err
+				}
+			}
+			if str := defaultPage.MarginRight; str == "" {
+				mr = onecm
+			} else {
+				if mr, err = bag.Sp(str); err != nil {
+					return err
+				}
+			}
+
+			// set page width / height
+			d.doc.Doc.DefaultPageWidth = wd
+			d.doc.Doc.DefaultPageHeight = ht
+
+			d.currentPageDimensions = PageDimensions{
+				Width:        wd,
+				Height:       ht,
+				MarginTop:    mt,
+				MarginBottom: mb,
+				MarginLeft:   ml,
+				MarginRight:  mr,
+			}
+		} else {
+
+			d.doc.Doc.DefaultPageWidth = bag.MustSp("210mm")
+			d.doc.Doc.DefaultPageHeight = bag.MustSp("297mm")
+
+			d.currentPageDimensions = PageDimensions{
+				Width:        d.doc.Doc.DefaultPageWidth,
+				Height:       d.doc.Doc.DefaultPageHeight,
+				MarginTop:    onecm,
+				MarginBottom: onecm,
+				MarginLeft:   onecm,
+				MarginRight:  onecm,
+			}
+		}
+		d.doc.Doc.NewPage()
+	}
+	return err
+}
+
+// PageSize returns a struct with the dimensions of the current page.
+func (d *Document) PageSize() (PageDimensions, error) {
+	err := d.initPage()
+	if err != nil {
+		return PageDimensions{}, err
+	}
+	return d.currentPageDimensions, nil
 }
 
 // ParseCSSString reads CSS instructions from a string.
 func (d *Document) ParseCSSString(css string) error {
 	var err error
-	d.c.AddCSSText(css)
-	if defaultPage, ok := d.c.Pages[""]; ok {
-		wdStr, htStr := csshtml.PapersizeWdHt(defaultPage.Papersize)
-		var wd, ht bag.ScaledPoint
-		wd, err = bag.Sp(wdStr)
-		if err != nil {
-			return err
-		}
-		ht, err = bag.Sp(htStr)
-		if err != nil {
-			return err
-		}
-		// set page width / height
-		d.doc.Doc.DefaultPageWidth = wd
-		d.doc.Doc.DefaultPageHeight = ht
+	if err = d.c.AddCSSText(css); err != nil {
+		return err
 	}
 	return nil
 }
 
 // OutputAt writes the HTML string to the PDF.
 func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledPoint) error {
-	err := d.c.ReadHTMLChunk(html)
-	if err != nil {
+	if err := d.initPage(); err != nil {
+		return err
+	}
+	if err := d.c.ReadHTMLChunk(html); err != nil {
 		return err
 	}
 	sel, err := d.c.ApplyCSS()
 	if err != nil {
 		return err
 	}
-	if err = d.parseSelection(sel,width); err != nil {
+	if err = d.parseSelection(sel, width); err != nil {
 		return err
 	}
 	for i, te := range d.te {
@@ -89,12 +179,17 @@ func New(filename string) (*Document, error) {
 	}
 	d.c = csshtml.NewCSSParserWithDefaults()
 	d.c.FrontendDocument = d.doc
-	d.doc.Doc.NewPage()
 	return d, nil
 }
 
 // Finish writes and closes the PDF.
 func (d *Document) Finish() error {
-	d.doc.Doc.CurrentPage.Shipout()
-	return d.doc.Doc.Finish()
+	D := d.doc.Doc
+	D.Title = d.Title
+	D.Author = d.Author
+	D.Keywords = d.Keywords
+	D.Creator = d.Creator
+	D.Subject = d.Subject
+	D.CurrentPage.Shipout()
+	return D.Finish()
 }

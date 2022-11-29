@@ -10,9 +10,13 @@ import (
 
 	"github.com/speedata/boxesandglue/backend/bag"
 	"github.com/speedata/boxesandglue/backend/color"
+	"github.com/speedata/boxesandglue/backend/document"
 	"github.com/speedata/boxesandglue/backend/node"
 	"github.com/speedata/boxesandglue/frontend"
 )
+
+var tenpt = bag.MustSp("10pt")
+var tenptflt = bag.MustSp("10pt").ToPT()
 
 func parseVerticalAlign(align string, styles *formattingStyles) frontend.VerticalAlignment {
 	switch align {
@@ -29,6 +33,21 @@ func parseVerticalAlign(align string, styles *formattingStyles) frontend.Vertica
 	}
 }
 
+func parseHorizontalAlign(align string, styles *formattingStyles) frontend.HorizontalAlignment {
+	switch align {
+	case "left":
+		return frontend.HAlignLeft
+	case "center":
+		return frontend.HAlignCenter
+	case "right":
+		return frontend.HAlignRight
+	case "inherit":
+		return styles.halign
+	default:
+		return frontend.HAlignDefault
+	}
+}
+
 func parseWidth(width string, dflt bag.ScaledPoint) (bag.ScaledPoint, error) {
 	if !strings.HasSuffix(width, "%") {
 		return 0, fmt.Errorf("no %% suffix")
@@ -41,6 +60,9 @@ func parseWidth(width string, dflt bag.ScaledPoint) (bag.ScaledPoint, error) {
 	return bag.ScaledPoint(int(dflt) * wd / 100), nil
 }
 
+// parseRelativeSize converts the string fs to a scaled point. This can be an
+// absolute size like 12pt but also a size like 1.2 or 2em. The provided dflt is
+// the source size.
 func parseRelativeSize(fs string, dflt bag.ScaledPoint) bag.ScaledPoint {
 	if strings.HasSuffix(fs, "em") {
 		prefix := strings.TrimSuffix(fs, "em")
@@ -51,7 +73,36 @@ func parseRelativeSize(fs string, dflt bag.ScaledPoint) bag.ScaledPoint {
 		}
 		return bag.ScaledPoint(float64(dflt) * factor)
 	}
-	return bag.MustSp(fs)
+	if unit, err := bag.Sp(fs); err == nil {
+		return unit
+	}
+	if factor, err := strconv.ParseFloat(fs, 64); err == nil {
+		return bag.ScaledPointFromFloat(dflt.ToPT() * factor)
+	}
+	switch fs {
+	case "larger":
+		return bag.ScaledPointFromFloat(dflt.ToPT() * 1.2)
+	case "smaller":
+		return bag.ScaledPointFromFloat(dflt.ToPT() / 1.2)
+	case "xx-small":
+		return bag.ScaledPointFromFloat(tenptflt / 1.2 / 1.2 / 1.2)
+	case "x-small":
+		return bag.ScaledPointFromFloat(tenptflt / 1.2 / 1.2)
+	case "small":
+		return bag.ScaledPointFromFloat(tenptflt / 1.2)
+	case "medium":
+		return tenpt
+	case "large":
+		return bag.ScaledPointFromFloat(tenptflt * 1.2)
+	case "x-large":
+		return bag.ScaledPointFromFloat(tenptflt * 1.2 * 1.2)
+	case "xx-large":
+		return bag.ScaledPointFromFloat(tenptflt * 1.2 * 1.2 * 1.2)
+	case "xxx-large":
+		return bag.ScaledPointFromFloat(tenptflt * 1.2 * 1.2 * 1.2 * 1.2)
+	}
+	bag.Logger.Errorf("Could not convert %s from default %s", fs, dflt)
+	return dflt
 }
 
 func (d *Document) applySettings(settings frontend.TypesettingSettings, ih *formattingStyles) {
@@ -65,6 +116,7 @@ func (d *Document) applySettings(settings frontend.TypesettingSettings, ih *form
 	settings[frontend.SettingMarginTop] = ih.marginTop
 	settings[frontend.SettingMarginBottom] = ih.marginBottom
 	settings[frontend.SettingColor] = ih.color
+	settings[frontend.SettingOpenTypeFeature] = ih.fontfeatures
 }
 
 func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]string) {
@@ -89,6 +141,8 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 			}
 		case "font-weight":
 			ih.fontweight = frontend.ResolveFontWeight(v, ih.fontweight)
+		case "font-feature-settings":
+			ih.fontfeatures = append(ih.fontfeatures, v)
 		case "color":
 			ih.color = d.c.FrontendDocument.GetColor(v)
 		case "margin-top":
@@ -98,7 +152,7 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 		case "font-family":
 			ih.fontfamily = d.doc.FindFontFamily(v)
 		case "line-height":
-			ih.lineheight = parseRelativeSize(v, d.currentStyle().lineheight)
+			ih.lineheight = parseRelativeSize(v, d.currentStyle().fontsize)
 		default:
 			// fmt.Println("unresolved attribute", k)
 		}
@@ -110,7 +164,18 @@ func (d *Document) collectHorizontalNodes(te *frontend.Text, item *htmlItem) err
 	case html.TextNode:
 		te.Items = append(te.Items, item.data)
 	case html.ElementNode:
+		childSettings := make(frontend.TypesettingSettings)
 		switch item.data {
+		case "a":
+			var href string
+			for k, v := range item.attributes {
+				switch k {
+				case "href":
+					href = v
+				}
+			}
+			hl := document.Hyperlink{URI: href}
+			childSettings[frontend.SettingHyperlink] = hl
 		case "img":
 			wd := bag.MustSp("3cm")
 			ht := wd
@@ -139,17 +204,21 @@ func (d *Document) collectHorizontalNodes(te *frontend.Text, item *htmlItem) err
 
 			te.Items = append(te.Items, hlist)
 		}
-		cld := frontend.NewText()
-		sty := d.pushStyles()
-		d.stylesToStyles(sty, item.styles)
-		d.applySettings(cld.Settings, sty)
+
 		for _, itm := range item.children {
+			cld := frontend.NewText()
+			sty := d.pushStyles()
+			d.stylesToStyles(sty, item.styles)
+			d.applySettings(cld.Settings, sty)
+			for k, v := range childSettings {
+				cld.Settings[k] = v
+			}
 			if err := d.collectHorizontalNodes(cld, itm); err != nil {
 				return err
 			}
 			te.Items = append(te.Items, cld)
+			d.popStyles()
 		}
-		d.popStyles()
 	}
 	return nil
 }
@@ -209,25 +278,32 @@ type formattingStyles struct {
 	fontstyle    frontend.FontStyle
 	lineheight   bag.ScaledPoint
 	fontweight   frontend.FontWeight
+	fontfeatures []string
 	fontfamily   *frontend.FontFamily
 	marginTop    bag.ScaledPoint
 	marginBottom bag.ScaledPoint
 	color        *color.Color
 	valign       frontend.VerticalAlignment
+	halign       frontend.HorizontalAlignment
 	language     string
 }
 
 func (is *formattingStyles) clone() *formattingStyles {
 	// inherit
+	newFeatures := make([]string, len(is.fontfeatures))
+	for i, f := range is.fontfeatures {
+		newFeatures[i] = f
+	}
 	newis := &formattingStyles{
-		fontsize:   is.fontsize,
-		lineheight: is.lineheight,
-		fontfamily: is.fontfamily,
-		fontweight: is.fontweight,
-		language:   is.language,
-		fontstyle:  is.fontstyle,
-		color:      is.color,
-		valign:     is.valign,
+		fontsize:     is.fontsize,
+		lineheight:   is.lineheight,
+		fontfamily:   is.fontfamily,
+		fontweight:   is.fontweight,
+		fontfeatures: newFeatures,
+		language:     is.language,
+		fontstyle:    is.fontstyle,
+		color:        is.color,
+		valign:       is.valign,
 	}
 	return newis
 }
