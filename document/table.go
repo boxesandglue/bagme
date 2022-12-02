@@ -140,16 +140,16 @@ func (d *Document) processTable(item *htmlItem, maxwd bag.ScaledPoint) error {
 	for k, v := range item.styles {
 		switch k {
 		case "margin-top":
-			m := parseRelativeSize(v, d.currentStyle().fontsize)
+			m := parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 			tableText.Settings[frontend.SettingMarginTop] = m
 		case "margin-bottom":
-			m := parseRelativeSize(v, d.currentStyle().fontsize)
+			m := parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 			tableText.Settings[frontend.SettingMarginBottom] = m
 		case "margin-left":
-			m := parseRelativeSize(v, d.currentStyle().fontsize)
+			m := parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 			tableText.Settings[frontend.SettingMarginLeft] = m
 		case "margin-right":
-			m := parseRelativeSize(v, d.currentStyle().fontsize)
+			m := parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 			tableText.Settings[frontend.SettingMarginRight] = m
 		case "width":
 			if k == "auto" {

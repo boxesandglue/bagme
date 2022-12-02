@@ -13,6 +13,7 @@ type Document struct {
 	Keywords              string // separated by comma
 	Creator               string
 	Subject               string
+	defaultFontsize       bag.ScaledPoint
 	currentPageDimensions PageDimensions
 	doc                   *frontend.Document
 	c                     *csshtml.CSS
@@ -140,7 +141,15 @@ func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledP
 		return err
 	}
 	for i, te := range d.te {
-		vl, _, err := d.doc.FormatParagraph(te, width)
+		var opts []frontend.TypesettingOption
+		if indent, ok := te.Settings[frontend.SettingIndentLeft]; ok {
+			if rows, ok := te.Settings[frontend.SettingIndentLeftRows]; ok {
+				opts = append(opts, frontend.IndentLeft(indent.(bag.ScaledPoint), rows.(int)))
+			} else {
+				opts = append(opts, frontend.IndentLeft(indent.(bag.ScaledPoint), 1))
+			}
+		}
+		vl, _, err := d.doc.FormatParagraph(te, width, opts...)
 		if err != nil {
 			return err
 		}
@@ -177,7 +186,9 @@ func New(filename string) (*Document, error) {
 	if d.doc.Doc.DefaultLanguage, err = frontend.GetLanguage("en"); err != nil {
 		return nil, err
 	}
-	d.c = csshtml.NewCSSParserWithDefaults()
+	d.c = csshtml.NewCSSParser()
+	d.c.Stylesheet = append(d.c.Stylesheet, csshtml.ConsumeBlock(csshtml.ParseCSSString(cssdefaults), false))
+
 	d.c.FrontendDocument = d.doc
 	return d, nil
 }
