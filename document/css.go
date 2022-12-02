@@ -1,7 +1,7 @@
 package document
 
 var cssdefaults = `
-html            { font-size: 10pt; }
+html            { font-size: 10pt; tab-size: 4; }
 li              { display: list-item; padding-inline-start: 1.5em; }
 head            { display: none }
 table           { display: table }
@@ -21,7 +21,7 @@ h4, p,
 blockquote, ul,
 fieldset, form,
 ol, dl, dir,
-h5              { font-size: 1em; margin: 0em 0 }
+h5              { font-size: 1em; margin: 1.5em 0 }
 h6              { font-size: .75em; margin: 1.67em 0 }
 h1, h2, h3, h4,
 h5, h6, b,

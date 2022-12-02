@@ -119,19 +119,43 @@ func (d *Document) applySettings(settings frontend.TypesettingSettings, ih *form
 	if ih.fontweight > 0 {
 		settings[frontend.SettingFontWeight] = ih.fontweight
 	}
-	settings[frontend.SettingSize] = ih.fontsize
+	settings[frontend.SettingBorderTopWidth] = ih.borderTopWidth
+	settings[frontend.SettingBorderLeftWidth] = ih.borderLeftWidth
+	settings[frontend.SettingBorderRightWidth] = ih.borderRightWidth
+	settings[frontend.SettingBorderBottomWidth] = ih.borderBottomWidth
+	settings[frontend.SettingBorderTopColor] = ih.borderTopColor
+	settings[frontend.SettingBorderLeftColor] = ih.borderLeftColor
+	settings[frontend.SettingBorderRightColor] = ih.borderRightColor
+	settings[frontend.SettingBorderBottomColor] = ih.borderBottomColor
+	settings[frontend.SettingBorderTopStyle] = ih.borderTopStyle
+	settings[frontend.SettingBorderLeftStyle] = ih.borderLeftStyle
+	settings[frontend.SettingBorderRightStyle] = ih.borderRightStyle
+	settings[frontend.SettingBorderBottomStyle] = ih.borderBottomStyle
+	settings[frontend.SettingBorderTopLeftRadius] = ih.borderTopLeftRadius
+	settings[frontend.SettingBorderTopRightRadius] = ih.borderTopRightRadius
+	settings[frontend.SettingBorderBottomLeftRadius] = ih.borderBottomLeftRadius
+	settings[frontend.SettingBorderBottomRightRadius] = ih.borderBottomRightRadius
+	settings[frontend.SettingColor] = ih.color
 	settings[frontend.SettingFontFamily] = ih.fontfamily
-	settings[frontend.SettingStyle] = ih.fontstyle
+	settings[frontend.SettingHAlign] = ih.halign
 	settings[frontend.SettingIndentLeft] = ih.indent
 	settings[frontend.SettingIndentLeftRows] = ih.indentRows
 	settings[frontend.SettingLeading] = ih.lineheight
-	settings[frontend.SettingMarginTop] = ih.marginTop
 	settings[frontend.SettingMarginBottom] = ih.marginBottom
-	settings[frontend.SettingColor] = ih.color
+	settings[frontend.SettingMarginRight] = ih.marginRight
+	settings[frontend.SettingMarginLeft] = ih.marginLeft
+	settings[frontend.SettingMarginTop] = ih.marginTop
 	settings[frontend.SettingOpenTypeFeature] = ih.fontfeatures
+	settings[frontend.SettingPaddingRight] = ih.paddingRight
+	settings[frontend.SettingPaddingLeft] = ih.paddingLeft
+	settings[frontend.SettingPaddingTop] = ih.paddingTop
+	settings[frontend.SettingPaddingBottom] = ih.paddingBottom
 	settings[frontend.SettingPreserveWhitespace] = ih.preserveWhitespace
+	settings[frontend.SettingSize] = ih.fontsize
+	settings[frontend.SettingStyle] = ih.fontstyle
 	settings[frontend.SettingYOffset] = ih.yoffset
-	settings[frontend.SettingHAlign] = ih.halign
+	settings[frontend.SettingTabSize] = ih.tabsize
+	settings[frontend.SettingTabSizeSpaces] = ih.tabsizeSpaces
 
 }
 
@@ -145,8 +169,61 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 		switch k {
 		case "font-size":
 			// already set
-		case "display", "hyphens", "margin-left", "margin-right":
+		case "display", "hyphens":
 			// ignore for now
+		case "border-right-width", "border-left-width", "border-top-width", "border-bottom-width":
+			size := parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
+			switch k {
+			case "border-right-width":
+				ih.borderRightWidth = size
+			case "border-left-width":
+				ih.borderLeftWidth = size
+			case "border-top-width":
+				ih.borderTopWidth = size
+			case "border-bottom-width":
+				ih.borderBottomWidth = size
+			}
+		case "border-top-right-radius", "border-top-left-radius", "border-bottom-right-radius", "border-bottom-left-radius":
+			size := parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
+			switch k {
+			case "border-top-right-radius":
+				ih.borderTopRightRadius = size
+			case "border-top-left-radius":
+				ih.borderTopLeftRadius = size
+			case "border-bottom-left-radius":
+				ih.borderBottomLeftRadius = size
+			case "border-bottom-right-radius":
+				ih.borderBottomRightRadius = size
+			}
+		case "border-right-style", "border-left-style", "border-top-style", "border-bottom-style":
+			var sty frontend.BorderStyle
+			switch v {
+			case "none":
+				// default
+			case "solid":
+				sty = frontend.BorderStyleSolid
+			default:
+				bag.Logger.DPanicf("not implemented: border style %q", v)
+			}
+			switch k {
+			case "border-right-style":
+				ih.borderRightStyle = sty
+			case "border-left-style":
+				ih.borderLeftStyle = sty
+			case "border-top-style":
+				ih.borderTopStyle = sty
+			case "border-bottom-style":
+				ih.borderBottomStyle = sty
+			}
+
+		case "border-right-color":
+			ih.borderRightColor = d.c.FrontendDocument.GetColor(v)
+		case "border-left-color":
+			ih.borderLeftColor = d.c.FrontendDocument.GetColor(v)
+		case "border-top-color":
+			ih.borderTopColor = d.c.FrontendDocument.GetColor(v)
+		case "border-bottom-color":
+			ih.borderBottomColor = d.c.FrontendDocument.GetColor(v)
 		case "color":
 			ih.color = d.c.FrontendDocument.GetColor(v)
 		case "font-style":
@@ -168,10 +245,28 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 			ih.lineheight = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 		case "margin-bottom":
 			ih.marginBottom = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
+		case "margin-left":
+			ih.marginLeft = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
+		case "margin-right":
+			ih.marginRight = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 		case "margin-top":
 			ih.marginTop = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 		case "padding-inline-start":
 			ih.paddingInlineStart = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
+		case "padding-bottom":
+			ih.paddingBottom = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
+		case "padding-left":
+			ih.paddingLeft = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
+		case "padding-right":
+			ih.paddingRight = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
+		case "padding-top":
+			ih.paddingTop = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
+		case "tab-size":
+			if ts, err := strconv.Atoi(v); err == nil {
+				ih.tabsizeSpaces = ts
+			} else {
+				ih.tabsize = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
+			}
 		case "text-align":
 			ih.halign = parseHorizontalAlign(v, ih)
 		case "text-indent":
@@ -361,25 +456,49 @@ func (d *Document) parseSelection(sel *goquery.Selection, wd bag.ScaledPoint) er
 }
 
 type formattingStyles struct {
-	color              *color.Color
-	fontfamily         *frontend.FontFamily
-	fontfeatures       []string
-	fontsize           bag.ScaledPoint
-	fontstyle          frontend.FontStyle
-	fontweight         frontend.FontWeight
-	halign             frontend.HorizontalAlignment
-	indent             bag.ScaledPoint
-	indentRows         int
-	language           string
-	lineheight         bag.ScaledPoint
-	listStyleType      string
-	marginBottom       bag.ScaledPoint
-	marginTop          bag.ScaledPoint
-	paddingInlineStart bag.ScaledPoint
-	olCounter          int
-	preserveWhitespace bool
-	valign             frontend.VerticalAlignment
-	yoffset            bag.ScaledPoint
+	borderLeftWidth         bag.ScaledPoint
+	borderRightWidth        bag.ScaledPoint
+	borderBottomWidth       bag.ScaledPoint
+	borderTopWidth          bag.ScaledPoint
+	borderTopLeftRadius     bag.ScaledPoint
+	borderTopRightRadius    bag.ScaledPoint
+	borderBottomLeftRadius  bag.ScaledPoint
+	borderBottomRightRadius bag.ScaledPoint
+	borderLeftColor         *color.Color
+	borderRightColor        *color.Color
+	borderBottomColor       *color.Color
+	borderTopColor          *color.Color
+	borderLeftStyle         frontend.BorderStyle
+	borderRightStyle        frontend.BorderStyle
+	borderBottomStyle       frontend.BorderStyle
+	borderTopStyle          frontend.BorderStyle
+	color                   *color.Color
+	fontfamily              *frontend.FontFamily
+	fontfeatures            []string
+	fontsize                bag.ScaledPoint
+	fontstyle               frontend.FontStyle
+	fontweight              frontend.FontWeight
+	halign                  frontend.HorizontalAlignment
+	indent                  bag.ScaledPoint
+	indentRows              int
+	language                string
+	lineheight              bag.ScaledPoint
+	listStyleType           string
+	marginBottom            bag.ScaledPoint
+	marginLeft              bag.ScaledPoint
+	marginRight             bag.ScaledPoint
+	marginTop               bag.ScaledPoint
+	paddingInlineStart      bag.ScaledPoint
+	paddingBottom           bag.ScaledPoint
+	paddingLeft             bag.ScaledPoint
+	paddingRight            bag.ScaledPoint
+	paddingTop              bag.ScaledPoint
+	olCounter               int
+	preserveWhitespace      bool
+	tabsize                 bag.ScaledPoint
+	tabsizeSpaces           int
+	valign                  frontend.VerticalAlignment
+	yoffset                 bag.ScaledPoint
 }
 
 func (is *formattingStyles) clone() *formattingStyles {
@@ -400,6 +519,8 @@ func (is *formattingStyles) clone() *formattingStyles {
 		listStyleType:      is.listStyleType,
 		olCounter:          is.olCounter,
 		preserveWhitespace: is.preserveWhitespace,
+		tabsize:            is.tabsize,
+		tabsizeSpaces:      is.tabsizeSpaces,
 		valign:             is.valign,
 	}
 	return newis

@@ -2,6 +2,7 @@ package document
 
 import (
 	"github.com/speedata/boxesandglue/backend/bag"
+	"github.com/speedata/boxesandglue/backend/color"
 	"github.com/speedata/boxesandglue/csshtml"
 	"github.com/speedata/boxesandglue/frontend"
 )
@@ -141,6 +142,7 @@ func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledP
 		return err
 	}
 	for i, te := range d.te {
+		lineWidth := width
 		var opts []frontend.TypesettingOption
 		if indent, ok := te.Settings[frontend.SettingIndentLeft]; ok {
 			if rows, ok := te.Settings[frontend.SettingIndentLeftRows]; ok {
@@ -149,16 +151,98 @@ func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledP
 				opts = append(opts, frontend.IndentLeft(indent.(bag.ScaledPoint), 1))
 			}
 		}
-		vl, _, err := d.doc.FormatParagraph(te, width, opts...)
+		hv := frontend.HTMLValues{}
+		if bw, ok := te.Settings[frontend.SettingBorderTopWidth]; ok {
+			hv.BorderTopWidth = bw.(bag.ScaledPoint)
+		}
+		if bw, ok := te.Settings[frontend.SettingBorderBottomWidth]; ok {
+			hv.BorderBottomWidth = bw.(bag.ScaledPoint)
+		}
+		if bw, ok := te.Settings[frontend.SettingBorderLeftWidth]; ok {
+			hv.BorderLeftWidth = bw.(bag.ScaledPoint)
+		}
+		if bw, ok := te.Settings[frontend.SettingBorderRightWidth]; ok {
+			hv.BorderRightWidth = bw.(bag.ScaledPoint)
+		}
+		if bw, ok := te.Settings[frontend.SettingBorderTopLeftRadius]; ok {
+			hv.BorderTopLeftRadius = bw.(bag.ScaledPoint)
+		}
+		if wd, ok := te.Settings[frontend.SettingMarginTop]; ok {
+			hv.MarginTop = wd.(bag.ScaledPoint)
+		}
+		if wd, ok := te.Settings[frontend.SettingMarginBottom]; ok {
+			hv.MarginBottom = wd.(bag.ScaledPoint)
+		}
+		if wd, ok := te.Settings[frontend.SettingMarginLeft]; ok {
+			hv.MarginLeft = wd.(bag.ScaledPoint)
+		}
+		if wd, ok := te.Settings[frontend.SettingMarginRight]; ok {
+			hv.MarginRight = wd.(bag.ScaledPoint)
+		}
+		if wd, ok := te.Settings[frontend.SettingPaddingTop]; ok {
+			hv.PaddingTop = wd.(bag.ScaledPoint)
+			delete(te.Settings, frontend.SettingPaddingTop)
+		}
+		if wd, ok := te.Settings[frontend.SettingPaddingBottom]; ok {
+			hv.PaddingBottom = wd.(bag.ScaledPoint)
+			delete(te.Settings, frontend.SettingPaddingBottom)
+		}
+		if wd, ok := te.Settings[frontend.SettingPaddingLeft]; ok {
+			hv.PaddingLeft = wd.(bag.ScaledPoint)
+			delete(te.Settings, frontend.SettingPaddingLeft)
+		}
+		if wd, ok := te.Settings[frontend.SettingPaddingRight]; ok {
+			hv.PaddingRight = wd.(bag.ScaledPoint)
+			delete(te.Settings, frontend.SettingPaddingRight)
+		}
+		if bw, ok := te.Settings[frontend.SettingBorderTopLeftRadius]; ok {
+			hv.BorderTopLeftRadius = bw.(bag.ScaledPoint)
+		}
+		if bw, ok := te.Settings[frontend.SettingBorderTopRightRadius]; ok {
+			hv.BorderTopRightRadius = bw.(bag.ScaledPoint)
+		}
+		if bw, ok := te.Settings[frontend.SettingBorderBottomLeftRadius]; ok {
+			hv.BorderBottomLeftRadius = bw.(bag.ScaledPoint)
+		}
+		if bw, ok := te.Settings[frontend.SettingBorderBottomRightRadius]; ok {
+			hv.BorderBottomRightRadius = bw.(bag.ScaledPoint)
+		}
+		if col, ok := te.Settings[frontend.SettingBorderRightColor]; ok {
+			hv.BorderRightColor = col.(*color.Color)
+		}
+		if col, ok := te.Settings[frontend.SettingBorderLeftColor]; ok {
+			hv.BorderLeftColor = col.(*color.Color)
+		}
+		if col, ok := te.Settings[frontend.SettingBorderTopColor]; ok {
+			hv.BorderTopColor = col.(*color.Color)
+		}
+		if col, ok := te.Settings[frontend.SettingBorderBottomColor]; ok {
+			hv.BorderBottomColor = col.(*color.Color)
+		}
+		if sty, ok := te.Settings[frontend.SettingBorderRightStyle]; ok {
+			hv.BorderRightStyle = sty.(frontend.BorderStyle)
+		}
+		if sty, ok := te.Settings[frontend.SettingBorderLeftStyle]; ok {
+			hv.BorderLeftStyle = sty.(frontend.BorderStyle)
+		}
+		if sty, ok := te.Settings[frontend.SettingBorderTopStyle]; ok {
+			hv.BorderTopStyle = sty.(frontend.BorderStyle)
+		}
+		if sty, ok := te.Settings[frontend.SettingBorderBottomStyle]; ok {
+			hv.BorderBottomStyle = sty.(frontend.BorderStyle)
+		}
+
+		lineWidth = lineWidth - hv.MarginLeft - hv.MarginRight - hv.PaddingLeft - hv.PaddingRight - hv.BorderLeftWidth - hv.BorderRightWidth
+		vl, _, err := d.doc.FormatParagraph(te, lineWidth, opts...)
 		if err != nil {
 			return err
 		}
-		d.doc.Doc.CurrentPage.OutputAt(x, y, vl)
+		vl = d.doc.HTMLBorder(vl, hv)
+
+		d.doc.Doc.CurrentPage.OutputAt(x+hv.MarginLeft, y, vl)
 		y -= vl.Height + vl.Depth
 		var additionalMargin bag.ScaledPoint
-		if mb, ok := te.Settings[frontend.SettingMarginBottom]; ok {
-			additionalMargin = mb.(bag.ScaledPoint)
-		}
+		additionalMargin = hv.MarginBottom
 		if i+1 < len(d.te) {
 			if mt, ok := d.te[i+1].Settings[frontend.SettingMarginTop]; ok {
 				marginTop := mt.(bag.ScaledPoint)

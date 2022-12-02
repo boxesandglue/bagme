@@ -134,9 +134,8 @@ func (d *Document) processTable(item *htmlItem, maxwd bag.ScaledPoint) error {
 	d.te = []*frontend.Text{}
 	tbl := &frontend.Table{}
 	tbl.Stretch = false
-	tbl.MaxWidth = maxwd
 	tableText := frontend.NewText()
-
+	marginLeft, marginRight := bag.ScaledPoint(0), bag.ScaledPoint(0)
 	for k, v := range item.styles {
 		switch k {
 		case "margin-top":
@@ -147,9 +146,11 @@ func (d *Document) processTable(item *htmlItem, maxwd bag.ScaledPoint) error {
 			tableText.Settings[frontend.SettingMarginBottom] = m
 		case "margin-left":
 			m := parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
+			marginLeft = m
 			tableText.Settings[frontend.SettingMarginLeft] = m
 		case "margin-right":
 			m := parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
+			marginRight = m
 			tableText.Settings[frontend.SettingMarginRight] = m
 		case "width":
 			if k == "auto" {
@@ -164,6 +165,8 @@ func (d *Document) processTable(item *htmlItem, maxwd bag.ScaledPoint) error {
 			}
 		}
 	}
+
+	tbl.MaxWidth = maxwd - marginLeft - marginRight
 
 	var rows frontend.TableRows
 	var err error
