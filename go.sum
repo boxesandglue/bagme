@@ -12,8 +12,8 @@ github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/speedata/boxesandglue v0.0.0-20221207093011-a6dd8432fd82 h1:pEOSGaabaQjYzbWggeCw2wB5nN+Ktv1wJIBB/1tcNSY=
-github.com/speedata/boxesandglue v0.0.0-20221207093011-a6dd8432fd82/go.mod h1:EjMAcvHgZnYHguWvTp0/tiU4YBfLnUh80vcPyDscy2c=
+github.com/speedata/boxesandglue v0.0.0-20221213095455-4fc4ff733fa8 h1:R46mFtjZeiHOKNsxrJQwnnriK9NjxSjKz8Hy2xaA/nw=
+github.com/speedata/boxesandglue v0.0.0-20221213095455-4fc4ff733fa8/go.mod h1:EjMAcvHgZnYHguWvTp0/tiU4YBfLnUh80vcPyDscy2c=
 github.com/speedata/css/scanner v0.0.0-20201005071706-2ed32c3ce553 h1:L9Sqi5S7G4JjODI5tZZ1IzZ7Yb4s71xFOq/uZtLv1Wg=
 github.com/speedata/css/scanner v0.0.0-20201005071706-2ed32c3ce553/go.mod h1:uF4+EGySaBnGeZpXZ0boh/oR6P0vNiYfQ2MAJXCU9hE=
 github.com/speedata/gofpdi v1.0.15 h1:PLFmzHTAdhgvCDMsWgvL/njaDFzTmvsYewqgw3UUEg4=

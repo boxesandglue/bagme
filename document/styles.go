@@ -119,6 +119,8 @@ func (d *Document) applySettings(settings frontend.TypesettingSettings, ih *form
 	if ih.fontweight > 0 {
 		settings[frontend.SettingFontWeight] = ih.fontweight
 	}
+
+	settings[frontend.SettingBackgroundColor] = ih.backgroundColor
 	settings[frontend.SettingBorderTopWidth] = ih.borderTopWidth
 	settings[frontend.SettingBorderLeftWidth] = ih.borderLeftWidth
 	settings[frontend.SettingBorderRightWidth] = ih.borderRightWidth
@@ -169,8 +171,12 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 		switch k {
 		case "font-size":
 			// already set
-		case "display", "hyphens":
+		case "hyphens":
 			// ignore for now
+		case "display":
+			ih.hide = (v == "none")
+		case "background-color":
+			ih.backgroundColor = d.doc.GetColor(v)
 		case "border-right-width", "border-left-width", "border-top-width", "border-bottom-width":
 			size := parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 			switch k {
@@ -224,6 +230,8 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 			ih.borderTopColor = d.c.FrontendDocument.GetColor(v)
 		case "border-bottom-color":
 			ih.borderBottomColor = d.c.FrontendDocument.GetColor(v)
+		case "border-spacing":
+			// ignore
 		case "color":
 			ih.color = d.c.FrontendDocument.GetColor(v)
 		case "font-style":
@@ -272,12 +280,16 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 		case "text-indent":
 			ih.indent = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 			ih.indentRows = 1
+		case "user-select":
+			// ignore
 		case "vertical-align":
 			if v == "sub" {
 				ih.yoffset = -1 * ih.fontsize * 1000 / 5000
 			} else if v == "super" {
 				ih.yoffset = ih.fontsize * 1000 / 5000
 			}
+		case "width":
+			// ignore
 		case "white-space":
 			ih.preserveWhitespace = (v == "pre")
 		default:
@@ -349,11 +361,13 @@ func (d *Document) collectHorizontalNodes(te *frontend.Text, item *htmlItem) err
 	return nil
 }
 
-func (d *Document) output(item *htmlItem, currentWidth bag.ScaledPoint) error {
+func (d *Document) output(item *htmlItem, currentWidth bag.ScaledPoint) (*frontend.Text, error) {
 	// item is guaranteed to be in vertical direction
+	newte := frontend.NewText()
 	styles := d.pushStyles()
 	d.stylesToStyles(styles, item.styles)
-	var prepend []any
+	d.applySettings(newte.Settings, styles)
+	newte.Settings[frontend.SettingDebug] = item.data
 	switch item.data {
 	case "html":
 		if fs, ok := item.styles["font-size"]; ok {
@@ -361,46 +375,53 @@ func (d *Document) output(item *htmlItem, currentWidth bag.ScaledPoint) error {
 			d.defaultFontsize = rfs
 		}
 	case "table":
-		d.processTable(item, currentWidth)
+		txt, err := d.processTable(item, currentWidth)
 		d.popStyles()
-		return nil
+		if err != nil {
+			return nil, err
+		}
+		return txt, nil
 	case "ol", "ul":
 		styles.olCounter = 0
-		vspace := frontend.NewText()
-		vspace.Settings[frontend.SettingMarginTop] = styles.marginTop
-		d.te = append(d.te, vspace)
 	case "li":
-		settings := make(frontend.TypesettingSettings)
-		d.applySettings(settings, styles)
-		item := styles.listStyleType
-		switch styles.listStyleType {
-		case "disc":
-			item = "•"
-		case "circle":
-			item = "◦"
-		case "square":
-			item = "□"
-		case "decimal":
-			item = fmt.Sprintf("%d.", styles.olCounter)
+		var item string
+		if strings.HasPrefix(styles.listStyleType, `"`) && strings.HasSuffix(styles.listStyleType, `"`) {
+			item = strings.TrimPrefix(styles.listStyleType, `"`)
+			item = strings.TrimSuffix(item, `"`)
+		} else {
+			switch styles.listStyleType {
+			case "disc":
+				item = "•"
+			case "circle":
+				item = "◦"
+			case "none":
+				item = ""
+			case "square":
+				item = "□"
+			case "decimal":
+				item = fmt.Sprintf("%d.", styles.olCounter)
+			default:
+				bag.Logger.Errorf("unhandled list-style-type: %q", styles.listStyleType)
+				item = "•"
+			}
+			item += " "
 		}
-		item += " "
-		n, err := d.doc.BuildNodelistFromString(settings, item)
+		n, err := d.doc.BuildNodelistFromString(newte.Settings, item)
 		if err != nil {
-			return err
+			return nil, err
 		}
-
-		g := node.NewGlue()
-		g.Stretch = 1 * bag.Factor
-		g.StretchOrder = node.StretchFil
-		n = node.InsertBefore(n, n, g)
-		n = node.HpackTo(n, styles.paddingInlineStart)
-		prepend = append(prepend, n)
-		styles.indent = styles.paddingInlineStart
-		styles.indentRows = -1
+		newte.Settings[frontend.SettingPrepend] = n
 	}
 
 	var te *frontend.Text
 	cur := modeVertical
+
+	// display = "none"
+	if styles.hide {
+		d.popStyles()
+		return newte, nil
+	}
+
 	for _, itm := range item.children {
 		if itm.dir == modeHorizontal {
 			// Going from vertical to horizontal.
@@ -415,13 +436,11 @@ func (d *Document) output(item *htmlItem, currentWidth bag.ScaledPoint) error {
 			}
 			if te == nil {
 				te = frontend.NewText()
-				for _, itm := range prepend {
-					te.Items = append(te.Items, itm)
-				}
+				styles = d.pushStyles()
 			}
 			d.applySettings(te.Settings, styles)
 			if err := d.collectHorizontalNodes(te, itm); err != nil {
-				return err
+				return nil, err
 			}
 			cur = modeHorizontal
 		} else {
@@ -430,32 +449,43 @@ func (d *Document) output(item *htmlItem, currentWidth bag.ScaledPoint) error {
 				styles.olCounter++
 			}
 			if te != nil {
-				d.te = append(d.te, te)
+				newte.Items = append(newte.Items, te)
 				te = nil
 			}
-			d.output(itm, currentWidth)
+			te, err := d.output(itm, currentWidth)
+			if err != nil {
+				return nil, err
+			}
+			newte.Items = append(newte.Items, te)
 		}
+	}
+	if item.dir == modeVertical && cur == modeVertical {
+		newte.Settings[frontend.SettingBox] = true
 	}
 	switch item.data {
 	case "ul", "ol":
-		vspace := frontend.NewText()
-		vspace.Settings[frontend.SettingMarginBottom] = styles.marginBottom
-		d.te = append(d.te, vspace)
+		ulte := frontend.NewText()
+		d.applySettings(ulte.Settings, styles)
+		ulte.Settings[frontend.SettingDebug] = item.data
+		ulte.Settings[frontend.SettingBox] = true
 	}
 	if te != nil {
-		d.te = append(d.te, te)
+		newte.Items = append(newte.Items, te)
+		d.popStyles()
+		te = nil
 	}
 	d.popStyles()
-	return nil
+	return newte, nil
 }
 
-func (d *Document) parseSelection(sel *goquery.Selection, wd bag.ScaledPoint) error {
+func (d *Document) parseSelection(sel *goquery.Selection, wd bag.ScaledPoint) (*frontend.Text, error) {
 	h := &htmlItem{dir: modeVertical}
 	dumpElement(sel.Nodes[0], modeVertical, h)
 	return d.output(h, wd)
 }
 
 type formattingStyles struct {
+	backgroundColor         *color.Color
 	borderLeftWidth         bag.ScaledPoint
 	borderRightWidth        bag.ScaledPoint
 	borderBottomWidth       bag.ScaledPoint
@@ -473,6 +503,7 @@ type formattingStyles struct {
 	borderBottomStyle       frontend.BorderStyle
 	borderTopStyle          frontend.BorderStyle
 	color                   *color.Color
+	hide                    bool
 	fontfamily              *frontend.FontFamily
 	fontfeatures            []string
 	fontsize                bag.ScaledPoint

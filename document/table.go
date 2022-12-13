@@ -22,21 +22,21 @@ func (d *Document) processTr(item *htmlItem) (*frontend.TableRow, error) {
 			for k, v := range itm.styles {
 				switch k {
 				case "padding-top":
-					tc.PaddingTop = bag.MustSp(v)
+					tc.PaddingTop = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 				case "padding-bottom":
-					tc.PaddingBottom = bag.MustSp(v)
+					tc.PaddingBottom = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 				case "padding-left":
-					tc.PaddingLeft = bag.MustSp(v)
+					tc.PaddingLeft = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 				case "padding-right":
-					tc.PaddingRight = bag.MustSp(v)
+					tc.PaddingRight = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 				case "border-top-width":
-					tc.BorderTopWidth = bag.MustSp(v)
+					tc.BorderTopWidth = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 				case "border-bottom-width":
-					tc.BorderBottomWidth = bag.MustSp(v)
+					tc.BorderBottomWidth = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 				case "border-left-width":
-					tc.BorderLeftWidth = bag.MustSp(v)
+					tc.BorderLeftWidth = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 				case "border-right-width":
-					tc.BorderRightWidth = bag.MustSp(v)
+					tc.BorderRightWidth = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 				case "border-top-color":
 					tc.BorderTopColor = d.doc.GetColor(v)
 				case "border-bottom-color":
@@ -92,12 +92,14 @@ func (d *Document) processTr(item *htmlItem) (*frontend.TableRow, error) {
 			}
 			tc.VAlign = styles.valign
 			tc.HAlign = styles.halign
-			if err := d.output(itm, 0); err != nil {
+
+			x, err := d.output(itm, 0)
+			if err != nil {
 				return nil, err
 			}
-			for _, te := range d.te {
-				tc.Contents = append(tc.Contents, te)
-			}
+			tc.Contents = append(tc.Contents, x)
+			// for _, te := range d.te {
+			// }
 			d.te = d.te[:0]
 			tr.Cells = append(tr.Cells, tc)
 			d.popStyles()
@@ -129,9 +131,7 @@ func (d *Document) processTbody(item *htmlItem) (frontend.TableRows, error) {
 	return trows, nil
 }
 
-func (d *Document) processTable(item *htmlItem, maxwd bag.ScaledPoint) error {
-	saveText := d.te
-	d.te = []*frontend.Text{}
+func (d *Document) processTable(item *htmlItem, maxwd bag.ScaledPoint) (*frontend.Text, error) {
 	tbl := &frontend.Table{}
 	tbl.Stretch = false
 	tableText := frontend.NewText()
@@ -158,7 +158,7 @@ func (d *Document) processTable(item *htmlItem, maxwd bag.ScaledPoint) error {
 			} else if strings.HasSuffix(v, "%") {
 				wd, err := parseWidth(v, maxwd)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				tbl.MaxWidth = wd
 				tbl.Stretch = true
@@ -180,7 +180,7 @@ func (d *Document) processTable(item *htmlItem, maxwd bag.ScaledPoint) error {
 				}
 			}
 			if rows, err = d.processTbody(itm); err != nil {
-				return err
+				return nil, err
 			}
 			tbl.Rows = append(tbl.Rows, rows...)
 			d.popStyles()
@@ -189,11 +189,9 @@ func (d *Document) processTable(item *htmlItem, maxwd bag.ScaledPoint) error {
 
 	vl, err := d.doc.BuildTable(tbl)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	hl := node.Hpack(vl[0])
 	tableText.Items = append(tableText.Items, hl)
-	d.te = saveText
-	d.te = append(d.te, tableText)
-	return nil
+	return tableText, nil
 }
