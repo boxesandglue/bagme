@@ -64,8 +64,21 @@ func parseWidth(width string, dflt bag.ScaledPoint) (bag.ScaledPoint, error) {
 // absolute size like 12pt but also a size like 1.2 or 2em. The provided dflt is
 // the source size. The root is the document's default value.
 func parseRelativeSize(fs string, dflt bag.ScaledPoint, root bag.ScaledPoint) bag.ScaledPoint {
-	// TODO: apply percentage such as 110%
+	if strings.HasSuffix(fs, "%") {
+		p := strings.TrimSuffix(fs, "%")
+		f, err := strconv.ParseFloat(p, 64)
+		if err != nil {
+			panic(err)
+		}
+		ret := bag.MultiplyFloat(dflt, f/100)
+		return ret
+	}
 	if strings.HasSuffix(fs, "rem") {
+		if root == 0 {
+			bag.Logger.Warn("Calculating an rem size without a body font size results in a size of 0.")
+			return 0
+		}
+
 		prefix := strings.TrimSuffix(fs, "rem")
 		factor, err := strconv.ParseFloat(prefix, 32)
 		if err != nil {
@@ -75,6 +88,10 @@ func parseRelativeSize(fs string, dflt bag.ScaledPoint, root bag.ScaledPoint) ba
 		return bag.ScaledPoint(float64(root) * factor)
 	}
 	if strings.HasSuffix(fs, "em") {
+		if dflt == 0 {
+			bag.Logger.Warn("Calculating an em size without a body font size results in a size of 0.")
+			return 0
+		}
 		prefix := strings.TrimSuffix(fs, "em")
 		factor, err := strconv.ParseFloat(prefix, 32)
 		if err != nil {
@@ -119,7 +136,6 @@ func (d *Document) applySettings(settings frontend.TypesettingSettings, ih *form
 	if ih.fontweight > 0 {
 		settings[frontend.SettingFontWeight] = ih.fontweight
 	}
-
 	settings[frontend.SettingBackgroundColor] = ih.backgroundColor
 	settings[frontend.SettingBorderTopWidth] = ih.borderTopWidth
 	settings[frontend.SettingBorderLeftWidth] = ih.borderLeftWidth
@@ -140,6 +156,7 @@ func (d *Document) applySettings(settings frontend.TypesettingSettings, ih *form
 	settings[frontend.SettingColor] = ih.color
 	settings[frontend.SettingFontFamily] = ih.fontfamily
 	settings[frontend.SettingHAlign] = ih.halign
+	settings[frontend.SettingHangingPunctuation] = ih.hangingPunctuation
 	settings[frontend.SettingIndentLeft] = ih.indent
 	settings[frontend.SettingIndentLeftRows] = ih.indentRows
 	settings[frontend.SettingLeading] = ih.lineheight
@@ -159,9 +176,13 @@ func (d *Document) applySettings(settings frontend.TypesettingSettings, ih *form
 	settings[frontend.SettingTabSize] = ih.tabsize
 	settings[frontend.SettingTabSizeSpaces] = ih.tabsizeSpaces
 
+	if ih.width != "" {
+		settings[frontend.SettingWidth] = ih.width
+	}
+
 }
 
-func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]string) {
+func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]string) error {
 	// Resolve font size first, since some of the attributes depend on the
 	// current font size.
 	if v, ok := attributes["font-size"]; ok {
@@ -234,6 +255,8 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 			// ignore
 		case "color":
 			ih.color = d.c.FrontendDocument.GetColor(v)
+		case "content":
+			// ignore
 		case "font-style":
 			switch v {
 			case "italic":
@@ -249,6 +272,15 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 			ih.listStyleType = v
 		case "font-family":
 			ih.fontfamily = d.doc.FindFontFamily(v)
+			if ih.fontfamily == nil {
+				bag.Logger.Errorf("font family %q not found", v)
+				return fmt.Errorf("font family %q not found", v)
+			}
+		case "hanging-punctuation":
+			switch v {
+			case "allow-end":
+				ih.hangingPunctuation = frontend.HangingPunctuationAllowEnd
+			}
 		case "line-height":
 			ih.lineheight = parseRelativeSize(v, d.currentStyle().fontsize, d.defaultFontsize)
 		case "margin-bottom":
@@ -289,13 +321,14 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 				ih.yoffset = ih.fontsize * 1000 / 5000
 			}
 		case "width":
-			// ignore
+			ih.width = v
 		case "white-space":
 			ih.preserveWhitespace = (v == "pre")
 		default:
 			fmt.Println("unresolved attribute", k, v)
 		}
 	}
+	return nil
 }
 
 func (d *Document) collectHorizontalNodes(te *frontend.Text, item *htmlItem) error {
@@ -346,7 +379,9 @@ func (d *Document) collectHorizontalNodes(te *frontend.Text, item *htmlItem) err
 		for _, itm := range item.children {
 			cld := frontend.NewText()
 			sty := d.pushStyles()
-			d.stylesToStyles(sty, item.styles)
+			if err := d.stylesToStyles(sty, item.styles); err != nil {
+				return err
+			}
 			d.applySettings(cld.Settings, sty)
 			for k, v := range childSettings {
 				cld.Settings[k] = v
@@ -365,7 +400,9 @@ func (d *Document) output(item *htmlItem, currentWidth bag.ScaledPoint) (*fronte
 	// item is guaranteed to be in vertical direction
 	newte := frontend.NewText()
 	styles := d.pushStyles()
-	d.stylesToStyles(styles, item.styles)
+	if err := d.stylesToStyles(styles, item.styles); err != nil {
+		return nil, err
+	}
 	d.applySettings(newte.Settings, styles)
 	newte.Settings[frontend.SettingDebug] = item.data
 	switch item.data {
@@ -373,6 +410,15 @@ func (d *Document) output(item *htmlItem, currentWidth bag.ScaledPoint) (*fronte
 		if fs, ok := item.styles["font-size"]; ok {
 			rfs := parseRelativeSize(fs, 0, 0)
 			d.defaultFontsize = rfs
+		}
+		if ffs, ok := item.styles["font-family"]; ok {
+			ff := d.doc.FindFontFamily(ffs)
+			d.defaultFontFamily = ff
+		}
+	case "body":
+		if ffs, ok := item.styles["font-family"]; ok {
+			ff := d.doc.FindFontFamily(ffs)
+			d.defaultFontFamily = ff
 		}
 	case "table":
 		txt, err := d.processTable(item, currentWidth)
@@ -510,6 +556,7 @@ type formattingStyles struct {
 	fontstyle               frontend.FontStyle
 	fontweight              frontend.FontWeight
 	halign                  frontend.HorizontalAlignment
+	hangingPunctuation      frontend.HangingPunctuation
 	indent                  bag.ScaledPoint
 	indentRows              int
 	language                string
@@ -529,6 +576,7 @@ type formattingStyles struct {
 	tabsize                 bag.ScaledPoint
 	tabsizeSpaces           int
 	valign                  frontend.VerticalAlignment
+	width                   string
 	yoffset                 bag.ScaledPoint
 }
 
@@ -545,6 +593,7 @@ func (is *formattingStyles) clone() *formattingStyles {
 		fontsize:           is.fontsize,
 		fontstyle:          is.fontstyle,
 		fontweight:         is.fontweight,
+		hangingPunctuation: is.hangingPunctuation,
 		language:           is.language,
 		lineheight:         is.lineheight,
 		listStyleType:      is.listStyleType,
