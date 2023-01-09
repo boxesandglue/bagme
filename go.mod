@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.0
-	github.com/speedata/boxesandglue v0.0.0-20221220093647-bd13bdf2ef77
+	github.com/speedata/boxesandglue v0.0.0-20230109120927-1ca98bd49e48
 	golang.org/x/net v0.2.0
 )
 

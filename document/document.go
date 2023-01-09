@@ -270,6 +270,7 @@ func New(filename string) (*Document, error) {
 	d.c = csshtml.NewCSSParser()
 	d.c.Stylesheet = append(d.c.Stylesheet, csshtml.ConsumeBlock(csshtml.ParseCSSString(cssdefaults), false))
 	d.c.FrontendDocument = d.doc
+	d.c.FrontendDocument.Doc.CompressLevel = 9
 	return d, nil
 }
 

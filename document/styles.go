@@ -154,6 +154,11 @@ func (d *Document) applySettings(settings frontend.TypesettingSettings, ih *form
 	settings[frontend.SettingBorderBottomLeftRadius] = ih.borderBottomLeftRadius
 	settings[frontend.SettingBorderBottomRightRadius] = ih.borderBottomRightRadius
 	settings[frontend.SettingColor] = ih.color
+	if ih.fontexpansion != nil {
+		settings[frontend.SettingFontExpansion] = *ih.fontexpansion
+	} else {
+		settings[frontend.SettingFontExpansion] = 0.05
+	}
 	settings[frontend.SettingFontFamily] = ih.fontfamily
 	settings[frontend.SettingHAlign] = ih.halign
 	settings[frontend.SettingHangingPunctuation] = ih.hangingPunctuation
@@ -324,6 +329,16 @@ func (d *Document) stylesToStyles(ih *formattingStyles, attributes map[string]st
 			ih.width = v
 		case "white-space":
 			ih.preserveWhitespace = (v == "pre")
+		case "-bag-font-expansion":
+			if strings.HasSuffix(v, "%") {
+				p := strings.TrimSuffix(v, "%")
+				f, err := strconv.ParseFloat(p, 64)
+				if err != nil {
+					return err
+				}
+				fe := f / 100
+				ih.fontexpansion = &fe
+			}
 		default:
 			fmt.Println("unresolved attribute", k, v)
 		}
@@ -555,6 +570,7 @@ type formattingStyles struct {
 	fontsize                bag.ScaledPoint
 	fontstyle               frontend.FontStyle
 	fontweight              frontend.FontWeight
+	fontexpansion           *float64
 	halign                  frontend.HorizontalAlignment
 	hangingPunctuation      frontend.HangingPunctuation
 	indent                  bag.ScaledPoint
@@ -594,6 +610,7 @@ func (is *formattingStyles) clone() *formattingStyles {
 		fontstyle:          is.fontstyle,
 		fontweight:         is.fontweight,
 		hangingPunctuation: is.hangingPunctuation,
+		fontexpansion:      is.fontexpansion,
 		language:           is.language,
 		lineheight:         is.lineheight,
 		listStyleType:      is.listStyleType,
