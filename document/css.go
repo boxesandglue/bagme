@@ -21,7 +21,7 @@ h4, p,
 blockquote, ul,
 fieldset, form,
 ol, dl, dir,
-h5              { font-size: 1em; margin: 1.5em 0 }
+h5              { font-size: 1em; margin: 1.5em 0; text-align: left; }
 h6              { font-size: .75em; margin: 1.67em 0 }
 h1, h2, h3, h4,
 h5, h6, b,
@@ -30,7 +30,7 @@ blockquote      { margin-left: 40px; margin-right: 40px }
 i, cite, em,
 var, address    { font-style: italic }
 pre, tt, code,
-kbd, samp       { font-family: monospace }
+kbd, samp       { font-family: monospace; -bag-font-expansion: 0%;}
 pre             { white-space: pre; margin: 1em 0px; }
 button, textarea,
 input, select   { display: inline-block }

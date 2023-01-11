@@ -517,7 +517,9 @@ func (d *Document) output(item *htmlItem, currentWidth bag.ScaledPoint) (*fronte
 			if err != nil {
 				return nil, err
 			}
-			newte.Items = append(newte.Items, te)
+			if len(te.Items) > 0 {
+				newte.Items = append(newte.Items, te)
+			}
 		}
 	}
 	if item.dir == modeVertical && cur == modeVertical {

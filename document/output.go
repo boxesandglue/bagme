@@ -7,7 +7,7 @@ import (
 	"github.com/speedata/boxesandglue/frontend"
 )
 
-func (d *Document) outputAtVertical(te *frontend.Text, width bag.ScaledPoint) (ret node.Node, err error) {
+func (d *Document) buildVlist(te *frontend.Text, width bag.ScaledPoint) (*node.VList, error) {
 	lineWidth := width
 	var opts []frontend.TypesettingOption
 	if indent, ok := te.Settings[frontend.SettingIndentLeft]; ok {
@@ -106,9 +106,11 @@ func (d *Document) outputAtVertical(te *frontend.Text, width bag.ScaledPoint) (r
 		}
 	}
 	lineWidth = lineWidth - hv.MarginLeft - hv.MarginRight - hv.PaddingLeft - hv.PaddingRight - hv.BorderLeftWidth - hv.BorderRightWidth
+	var err error
 	if bx, ok := te.Settings[frontend.SettingBox]; ok && bx.(bool) {
 		var newvl node.Node
 		var n node.Node
+		var vl *node.VList
 		var prevMarginBottom bag.ScaledPoint
 		for _, itm := range te.Items {
 			if txt, ok := itm.(*frontend.Text); ok {
@@ -126,9 +128,9 @@ func (d *Document) outputAtVertical(te *frontend.Text, width bag.ScaledPoint) (r
 						}
 					}
 				}
-				n, err = d.outputAtVertical(txt, lineWidth)
+				n, err = d.buildVlist(txt, lineWidth)
 				if err != nil {
-					return
+					return nil, err
 				}
 				if hv.MarginLeft > 0 {
 					g := node.NewGlue()
@@ -169,35 +171,44 @@ func (d *Document) outputAtVertical(te *frontend.Text, width bag.ScaledPoint) (r
 			g.Attributes = node.H{"origin": "margin bottom"}
 			newvl = node.InsertAfter(newvl, node.Tail(newvl), g)
 		}
-		vl := node.Vpack(newvl)
+
+		if vlist, ok := newvl.(*node.VList); ok {
+			return vlist, nil
+		}
+		vl = node.Vpack(newvl)
+		vl.Attributes = node.H{"origin": "html pack box"}
 		vl = d.doc.HTMLBorder(vl, hv)
-		ret = vl
-		return
+		return vl, nil
 	}
 
 	var vl *node.VList
 	vl, _, err = d.doc.FormatParagraph(te, lineWidth, opts...)
 	if err != nil {
-		return
+		return nil, err
 	}
 	vl = d.doc.HTMLBorder(vl, hv)
-	ml := node.NewGlue()
-	mr := node.NewGlue()
-	ml.Width = hv.MarginLeft
-	mr.Width = hv.MarginRight
-	ml.Attributes = node.H{"origin": "margin left"}
-	mr.Attributes = node.H{"origin": "margin right"}
-	var n node.Node
-	n = node.InsertBefore(vl, vl, ml)
-	node.InsertAfter(n, vl, mr)
-	n = node.Hpack(n)
-	vl = node.Vpack(n)
-	ret = vl
-	return
-}
-
-func (d *Document) outputToVList(text *frontend.Text, width bag.ScaledPoint) (node.Node, error) {
-	return d.outputAtVertical(text, width)
+	var head, tail node.Node
+	head = vl
+	tail = vl
+	if hv.MarginLeft != 0 {
+		ml := node.NewGlue()
+		ml.Attributes = node.H{"origin": "margin left"}
+		ml.Width = hv.MarginLeft
+		head = node.InsertBefore(head, head, ml)
+	}
+	if hv.MarginRight != 0 {
+		mr := node.NewGlue()
+		mr.Width = hv.MarginRight
+		mr.Attributes = node.H{"origin": "margin right"}
+		node.InsertAfter(head, tail, mr)
+	}
+	if head != vl {
+		head = node.Hpack(head)
+		node.SetAttribute(head, "origin", "build vlist")
+		vl = node.Vpack(head)
+		node.SetAttribute(vl, "origin", "build vlist")
+	}
+	return vl, nil
 }
 
 func hasContents(areaAttributes map[string]string) bool {

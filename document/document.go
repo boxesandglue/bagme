@@ -157,6 +157,7 @@ func (d *Document) initPage() error {
 				x := pdfdraw.NewStandalone().ColorNonstroking(*styles.backgroundColor).Rect(0, 0, wd, -ht).Fill()
 				r.Pre = x.String()
 				rvl := node.Vpack(r)
+				rvl.Attributes = node.H{"origin": "page background color"}
 				d.doc.Doc.CurrentPage.OutputAt(0, ht, rvl)
 			}
 			d.doc.Doc.CurrentPage.OutputAt(ml, ht-mt, vl)
@@ -245,13 +246,12 @@ func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledP
 	if te, err = d.parseSelection(sel, width); err != nil {
 		return err
 	}
-	n, err := d.outputToVList(te, width)
+	n, err := d.buildVlist(te, width)
 	if err != nil {
 		bag.Logger.Error(err)
 		return err
 	}
-	vl := node.Vpack(n)
-	d.doc.Doc.CurrentPage.OutputAt(x, y, vl)
+	d.doc.Doc.CurrentPage.OutputAt(x, y, n)
 	d.te = nil
 	return nil
 }
