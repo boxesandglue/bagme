@@ -119,7 +119,7 @@ func main() {
 * No automatic page breaks: you have to take care of your items on the page.
 * Limited HTML/CSS support: some things are implemented, most are not.
 
-You can take a look at [the examples Repository](https://github.com/speedata/bagme-examples) to see what is possible.
+You can take a look at [the examples repository](https://github.com/speedata/bagme-examples) to see what is possible.
 
 ## Other
 
