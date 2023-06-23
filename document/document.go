@@ -30,14 +30,17 @@ func (d *Document) ParseCSSFile(filename string) error {
 	return d.cssbuilder.ParseCSSFile(filename)
 }
 
+// AddCSS permanently adds the css instructions to the current state.
 func (d *Document) AddCSS(css string) {
 	d.cssbuilder.AddCSS(css)
 }
 
+// ParseHTML interprets the HTML string and applies all previously read CSS data.
 func (d *Document) ParseHTML(html string) (*frontend.Text, error) {
 	return d.cssbuilder.ParseHTML(html)
 }
 
+// ParseHTMLFromNode interprets the HTML structure and applies all previously read CSS data.
 func (d *Document) ParseHTMLFromNode(html *html.Node) (*frontend.Text, error) {
 	return d.cssbuilder.ParseHTMLFromNode(html)
 }
@@ -62,6 +65,12 @@ func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledP
 	return nil
 }
 
+// ShowCSS dumps the currently known CSS to a CSS like string
+func (d *Document) ShowCSS() string {
+	return d.cssbuilder.ShowCSS()
+}
+
+// NewWithFrontend creates a document with a boxes and glue frontend document.
 func NewWithFrontend(fe *frontend.Document, cssparser *csshtml.CSS) *Document {
 	d := &Document{}
 	d.Frontend = fe
@@ -69,6 +78,7 @@ func NewWithFrontend(fe *frontend.Document, cssparser *csshtml.CSS) *Document {
 	return d
 }
 
+// CreateVlist returns a single vertical list ready to be placed in the PDF.
 func (d *Document) CreateVlist(te *frontend.Text, wd bag.ScaledPoint) (*node.VList, error) {
 	return d.cssbuilder.CreateVlist(te, wd)
 }
