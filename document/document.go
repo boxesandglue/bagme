@@ -6,7 +6,6 @@ import (
 	"github.com/speedata/boxesandglue/csshtml"
 	"github.com/speedata/boxesandglue/frontend"
 	"github.com/speedata/boxesandglue/frontend/cssbuilder"
-	"golang.org/x/exp/slog"
 	"golang.org/x/net/html"
 )
 
@@ -59,7 +58,6 @@ func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledP
 
 	err = d.cssbuilder.OutputAt(te, x, y, width)
 	if err != nil {
-		slog.Error(err.Error())
 		return err
 	}
 
