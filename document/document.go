@@ -25,9 +25,9 @@ func (d *Document) PageSize() (cssbuilder.PageDimensions, error) {
 	return d.cssbuilder.PageSize()
 }
 
-// ParseCSSFile parses the CSS file at the filename.
-func (d *Document) ParseCSSFile(filename string) error {
-	return d.cssbuilder.ParseCSSFile(filename)
+// ReadCSSFile parses the CSS file at the filename.
+func (d *Document) ReadCSSFile(filename string) error {
+	return d.cssbuilder.ReadCSSFile(filename)
 }
 
 // AddCSS permanently adds the css instructions to the current state.
@@ -35,9 +35,9 @@ func (d *Document) AddCSS(css string) {
 	d.cssbuilder.AddCSS(css)
 }
 
-// ParseHTML interprets the HTML string and applies all previously read CSS data.
-func (d *Document) ParseHTML(html string) (*frontend.Text, error) {
-	return d.cssbuilder.ParseHTML(html)
+// HTMLToText interprets the HTML string and applies all previously read CSS data.
+func (d *Document) HTMLToText(html string) (*frontend.Text, error) {
+	return d.cssbuilder.HTMLToText(html)
 }
 
 // ParseHTMLFromNode interprets the HTML structure and applies all previously read CSS data.
@@ -51,7 +51,7 @@ func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledP
 		return err
 	}
 
-	te, err := d.cssbuilder.ParseHTML(html)
+	te, err := d.cssbuilder.HTMLToText(html)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,10 @@ func New(filename string) (*Document, error) {
 	if err != nil {
 		return nil, err
 	}
-	d.cssbuilder = cssbuilder.New(d.Frontend, csshtml.NewCSSParser())
+	if err = d.Frontend.LoadIncludedFonts(); err != nil {
+		return nil, err
+	}
+	d.cssbuilder = cssbuilder.New(d.Frontend, csshtml.NewCSSParserWithDefaults())
 
 	if d.Frontend.Doc.DefaultLanguage, err = frontend.GetLanguage("en"); err != nil {
 		return nil, err
