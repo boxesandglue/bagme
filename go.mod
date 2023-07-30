@@ -3,7 +3,7 @@ module github.com/speedata/bagme
 go 1.18
 
 require (
-	github.com/speedata/boxesandglue v0.0.0-20230717123135-dd440b2c55c7
+	github.com/speedata/boxesandglue v0.0.0-20230730144447-3c54aaa6933c
 	golang.org/x/net v0.10.0
 )
 
@@ -11,7 +11,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.1 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/speedata/baseline-pdf v0.0.0-20230717121810-fcb08a486045 // indirect
+	github.com/speedata/baseline-pdf v0.0.0-20230730102707-4a7247b84eda // indirect
 	github.com/speedata/css/scanner v0.0.0-20201005071706-2ed32c3ce553 // indirect
 	github.com/speedata/gofpdi v1.0.18 // indirect
 	github.com/speedata/hyphenation v1.0.1 // indirect
