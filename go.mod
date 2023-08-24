@@ -3,7 +3,7 @@ module github.com/speedata/bagme
 go 1.18
 
 require (
-	github.com/speedata/boxesandglue v0.0.0-20230730144447-3c54aaa6933c
+	github.com/speedata/boxesandglue v0.0.0-20230824102853-56353324cf48
 	golang.org/x/net v0.10.0
 )
 
