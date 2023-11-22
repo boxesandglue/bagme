@@ -39,32 +39,9 @@ var html = `<h1>The frog king</h1>
 	and this ball was her favorite plaything.
 </p>`
 
-var css = `@font-face {
-    font-family: CrimsonPro;
-    src: url("fonts/crimsonpro/CrimsonPro-Regular.ttf");
-}
-
-@font-face {
-    font-family: CrimsonPro;
-    src: url("fonts/crimsonpro/CrimsonPro-Bold.ttf");
-    font-weight: bold;
-}
-
-@font-face {
-    font-family: CrimsonPro;
-    src: url("fonts/crimsonpro/CrimsonPro-Italic.ttf");
-    font-style: italic;
-}
-
-@font-face {
-    font-family: CrimsonPro;
-    src: url("fonts/crimsonpro/CrimsonPro-BoldItalic.ttf");
-    font-style: italic;
-    font-weight: bold;
-}
-
+var css = `
 body {
-	font-family: CrimsonPro;
+	font-family: serif;
     font-size: 12pt;
     line-height: 14pt;
 }
@@ -89,19 +66,22 @@ func dothings() error {
 	if err != nil {
 		return err
 	}
-	if d.ParseCSSString(css); err != nil {
+	if d.AddCSS(css); err != nil {
+		return err
+	}
+	// loads the font families serif, sans and monospace
+	if err = d.Frontend.LoadIncludedFonts(); err != nil {
 		return err
 	}
 	wd := bag.MustSp("280pt")
 	colText := bag.MustSp("140pt")
 	colImage := bag.MustSp("20pt")
 	rowText := bag.MustSp("23cm")
-	rowImage := rowText - bag.MustSp("40pt")
 	if err = d.OutputAt(html, wd, colText, rowText); err != nil {
 		return err
 	}
 
-	if err = d.OutputAt(`<img src="img/frogking-a.pdf" width="4cm" height="6cm">`, wd, colImage, rowImage); err != nil {
+	if err = d.OutputAt(`<img src="img/frogking-a.pdf" width="4cm" height="6cm">`, wd, colImage, rowText); err != nil {
 		return err
 	}
 	return d.Finish()
