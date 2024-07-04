@@ -1,86 +1,81 @@
 package document
 
 import (
-	"github.com/speedata/boxesandglue/backend/bag"
-	"github.com/speedata/boxesandglue/backend/node"
-	"github.com/speedata/boxesandglue/csshtml"
 	"github.com/speedata/boxesandglue/frontend"
-	"github.com/speedata/boxesandglue/frontend/cssbuilder"
-	"golang.org/x/net/html"
+	"github.com/speedata/csshtml"
 )
 
 // Document is the main starting point of the PDF generation.
 type Document struct {
-	Title      string
-	Author     string
-	Keywords   string // separated by comma
-	Creator    string
-	Subject    string
-	Frontend   *frontend.Document
-	cssbuilder *cssbuilder.CSSBuilder
+	Title    string
+	Author   string
+	Keywords string // separated by comma
+	Creator  string
+	Subject  string
+	Frontend *frontend.Document
 }
 
-// PageSize returns a struct with the dimensions of the current page.
-func (d *Document) PageSize() (cssbuilder.PageDimensions, error) {
-	return d.cssbuilder.PageSize()
-}
+// // PageSize returns a struct with the dimensions of the current page.
+// func (d *Document) PageSize() (cssbuilder.PageDimensions, error) {
+// 	return d.cssbuilder.PageSize()
+// }
 
-// ReadCSSFile parses the CSS file at the filename.
-func (d *Document) ReadCSSFile(filename string) error {
-	return d.cssbuilder.ReadCSSFile(filename)
-}
+// // ReadCSSFile parses the CSS file at the filename.
+// func (d *Document) ReadCSSFile(filename string) error {
+// 	return d.cssbuilder.ReadCSSFile(filename)
+// }
 
-// AddCSS permanently adds the css instructions to the current state.
-func (d *Document) AddCSS(css string) {
-	d.cssbuilder.AddCSS(css)
-}
+// // AddCSS permanently adds the css instructions to the current state.
+// func (d *Document) AddCSS(css string) {
+// 	d.cssbuilder.AddCSS(css)
+// }
 
-// HTMLToText interprets the HTML string and applies all previously read CSS data.
-func (d *Document) HTMLToText(html string) (*frontend.Text, error) {
-	return d.cssbuilder.HTMLToText(html)
-}
+// // HTMLToText interprets the HTML string and applies all previously read CSS data.
+// func (d *Document) HTMLToText(html string) (*frontend.Text, error) {
+// 	return d.cssbuilder.HTMLToText(html)
+// }
 
-// ParseHTMLFromNode interprets the HTML structure and applies all previously read CSS data.
-func (d *Document) ParseHTMLFromNode(html *html.Node) (*frontend.Text, error) {
-	return d.cssbuilder.ParseHTMLFromNode(html)
-}
+// // ParseHTMLFromNode interprets the HTML structure and applies all previously read CSS data.
+// func (d *Document) ParseHTMLFromNode(html *html.Node) (*frontend.Text, error) {
+// 	return d.cssbuilder.ParseHTMLFromNode(html)
+// }
 
-// OutputAt writes the HTML string to the PDF.
-func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledPoint) error {
-	if err := d.cssbuilder.InitPage(); err != nil {
-		return err
-	}
+// // OutputAt writes the HTML string to the PDF.
+// func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledPoint) error {
+// 	if err := d.cssbuilder.InitPage(); err != nil {
+// 		return err
+// 	}
 
-	te, err := d.cssbuilder.HTMLToText(html)
-	if err != nil {
-		return err
-	}
+// 	te, err := d.cssbuilder.HTMLToText(html)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = d.cssbuilder.OutputAt(te, x, y, width)
-	if err != nil {
-		return err
-	}
+// 	err = d.cssbuilder.OutputAt(te, x, y, width)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
-// ShowCSS dumps the currently known CSS to a CSS like string
-func (d *Document) ShowCSS() string {
-	return d.cssbuilder.ShowCSS()
-}
+// // ShowCSS dumps the currently known CSS to a CSS like string
+// func (d *Document) ShowCSS() string {
+// 	return d.cssbuilder.ShowCSS()
+// }
 
 // NewWithFrontend creates a document with a boxes and glue frontend document.
 func NewWithFrontend(fe *frontend.Document, cssparser *csshtml.CSS) *Document {
 	d := &Document{}
 	d.Frontend = fe
-	d.cssbuilder = cssbuilder.New(fe, cssparser)
+	// d.cssbuilder = cssbuilder.New(fe, cssparser)
 	return d
 }
 
-// CreateVlist returns a single vertical list ready to be placed in the PDF.
-func (d *Document) CreateVlist(te *frontend.Text, wd bag.ScaledPoint) (*node.VList, error) {
-	return d.cssbuilder.CreateVlist(te, wd)
-}
+// // CreateVlist returns a single vertical list ready to be placed in the PDF.
+// func (d *Document) CreateVlist(te *frontend.Text, wd bag.ScaledPoint) (*node.VList, error) {
+// 	return d.Frontend.CreateVlist(te, wd)
+// }
 
 // New writes the PDF
 func New(filename string) (*Document, error) {
@@ -93,7 +88,7 @@ func New(filename string) (*Document, error) {
 	if err = d.Frontend.LoadIncludedFonts(); err != nil {
 		return nil, err
 	}
-	d.cssbuilder = cssbuilder.New(d.Frontend, csshtml.NewCSSParserWithDefaults())
+	// d.cssbuilder = cssbuilder.New(d.Frontend, csshtml.NewCSSParserWithDefaults())
 
 	if d.Frontend.Doc.DefaultLanguage, err = frontend.GetLanguage("en"); err != nil {
 		return nil, err
@@ -110,9 +105,9 @@ func (d *Document) Finish() error {
 	pdfDoc.Keywords = d.Keywords
 	pdfDoc.Creator = d.Creator
 	pdfDoc.Subject = d.Subject
-	if err := d.cssbuilder.BeforeShipout(); err != nil {
-		return err
-	}
+	// if err := d.cssbuilder.BeforeShipout(); err != nil {
+	// 	return err
+	// }
 	pdfDoc.CurrentPage.Shipout()
 	return pdfDoc.Finish()
 }
