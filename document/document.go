@@ -1,8 +1,8 @@
 package document
 
 import (
-	"github.com/speedata/boxesandglue/frontend"
-	"github.com/speedata/csshtml"
+	"github.com/boxesandglue/boxesandglue/frontend"
+	"github.com/boxesandglue/csshtml"
 )
 
 // Document is the main starting point of the PDF generation.

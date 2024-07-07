@@ -17,8 +17,8 @@ package main
 import (
 	"log"
 
-	"github.com/speedata/bagme/document"
-	"github.com/speedata/boxesandglue/backend/bag"
+	"github.com/boxesandglue/bagme/document"
+	"github.com/boxesandglue/boxesandglue/backend/bag"
 )
 
 var html = `<h1>The frog king</h1>
@@ -99,7 +99,7 @@ func main() {
 * No automatic page breaks: you have to take care of your items on the page.
 * Limited HTML/CSS support: some things are implemented, most are not.
 
-You can take a look at [the examples repository](https://github.com/speedata/bagme-examples) to see what is possible.
+You can take a look at [the examples repository](https://github.com/boxesandglue/bagme-examples) to see what is possible.
 
 ## Other
 
