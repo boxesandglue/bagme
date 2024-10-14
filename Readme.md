@@ -73,10 +73,10 @@ func dothings() error {
 	if err = d.Frontend.LoadIncludedFonts(); err != nil {
 		return err
 	}
-	wd := bag.MustSp("280pt")
-	colText := bag.MustSp("140pt")
-	colImage := bag.MustSp("20pt")
-	rowText := bag.MustSp("23cm")
+	wd := bag.MustSP("280pt")
+	colText := bag.MustSP("140pt")
+	colImage := bag.MustSP("20pt")
+	rowText := bag.MustSP("23cm")
 	if err = d.OutputAt(html, wd, colText, rowText); err != nil {
 		return err
 	}
