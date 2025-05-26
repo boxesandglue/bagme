@@ -1,3 +1,5 @@
+** This library is currently under development and not yet ready for production use. **
+
 # bagme - boxes and glue made easy
 
 bagme is a PDF library to format HTML fragments styled with CSS using the (pure Go) “[boxes and glue](https://boxesandglue.dev)” library.
@@ -99,7 +101,6 @@ func main() {
 * No automatic page breaks: you have to take care of your items on the page.
 * Limited HTML/CSS support: some things are implemented, most are not.
 
-You can take a look at [the examples repository](https://github.com/boxesandglue/bagme-examples) to see what is possible.
 
 ## Other
 
