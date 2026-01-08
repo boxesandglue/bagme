@@ -28,6 +28,11 @@ func (d *Document) ReadCSSFile(filename string) error {
 	return d.cssbuilder.ReadCSSFile(filename)
 }
 
+// AddCSS reads the CSS instructions from a string.
+func (d *Document) AddCSS(css string) error {
+	return d.cssbuilder.AddCSS(css)
+}
+
 // OutputAt writes the HTML string to the PDF.
 func (d *Document) OutputAt(html string, width bag.ScaledPoint, x, y bag.ScaledPoint) error {
 	if err := d.cssbuilder.InitPage(); err != nil {

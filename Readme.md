@@ -7,6 +7,11 @@ boxes and glue implements TeX's typesetting algorithms, so the idea is to get su
 
 The goal is to have a PDF rendering engine for your Go software without having to do a lot of programming.
 
+## Installation
+
+```bash
+go get github.com/boxesandglue/bagme
+```
 
 ## Sample code
 
@@ -68,11 +73,7 @@ func dothings() error {
 	if err != nil {
 		return err
 	}
-	if d.AddCSS(css); err != nil {
-		return err
-	}
-	// loads the font families serif, sans and monospace
-	if err = d.Frontend.LoadIncludedFonts(); err != nil {
+	if err = d.AddCSS(css); err != nil {
 		return err
 	}
 	wd := bag.MustSP("280pt")
@@ -83,7 +84,8 @@ func dothings() error {
 		return err
 	}
 
-	if err = d.OutputAt(`<img src="img/frogking-a.pdf" width="4cm" height="6cm">`, wd, colImage, rowText); err != nil {
+	if err = d.OutputAt(`<img src="img/frogking-a.pdf" width="4cm" height="6cm">`,
+		wd, colImage, rowText-bag.MustSP("1.4cm")); err != nil {
 		return err
 	}
 	return d.Finish()
