@@ -1,6 +1,11 @@
 package document
 
 import (
+	"fmt"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/boxesandglue/boxesandglue/backend/bag"
 	"github.com/boxesandglue/boxesandglue/backend/document"
 	"github.com/boxesandglue/boxesandglue/frontend"
@@ -19,6 +24,7 @@ type config struct {
 	format        document.Format
 	attachments   []document.Attachment
 	xmpExtensions []document.XMPExtension
+	creationDate  *time.Time
 }
 
 // WithPDFUA enables PDF/UA (accessible PDF) output. All HTML elements are
@@ -49,6 +55,41 @@ func WithPDFX4() Option {
 // for standards like ZUGFeRD/Factur-X, or use WithZUGFeRD for convenience.
 func WithAttachment(a Attachment) Option {
 	return func(c *config) { c.attachments = append(c.attachments, a) }
+}
+
+// WithCreationDate fixes the PDF CreationDate to t instead of letting
+// baseline-pdf fall back to time.Now() at Finish time. Use this for
+// reproducible builds. When no explicit override is supplied, New()
+// also auto-reads $SOURCE_DATE_EPOCH (Unix seconds, UTC) per the
+// reproducible-builds.org standard.
+func WithCreationDate(t time.Time) Option {
+	return func(c *config) { c.creationDate = &t }
+}
+
+// resolveCreationDate picks the timestamp for the PDF InfoDict in
+// priority order: explicit WithCreationDate() > $SOURCE_DATE_EPOCH.
+// Returns ok=false when neither is set; the caller then leaves
+// InfoDict["CreationDate"] alone so baseline-pdf's time.Now() default
+// runs at Finish.
+func resolveCreationDate(cfg *config) (time.Time, bool) {
+	if cfg.creationDate != nil {
+		return *cfg.creationDate, true
+	}
+	if v := os.Getenv("SOURCE_DATE_EPOCH"); v != "" {
+		if secs, err := strconv.ParseInt(v, 10, 64); err == nil {
+			return time.Unix(secs, 0).UTC(), true
+		}
+	}
+	return time.Time{}, false
+}
+
+// formatPDFDate produces a PDF-spec CreationDate string in the same
+// shape baseline-pdf's internal pdfDate() emits. Re-implemented here
+// because the helper is not exported; mirrors the same workaround in
+// glu/markdown.
+func formatPDFDate(t time.Time) string {
+	s := t.Format("20060102150405-0700")
+	return fmt.Sprintf("(D:%s%s%s'%s')", s[:14], s[14:15], s[15:17], s[17:19])
 }
 
 // WithZUGFeRD creates a ZUGFeRD/Factur-X compliant PDF. It sets the format to
@@ -218,6 +259,18 @@ func New(filename string, opts ...Option) (*Document, error) {
 	fe, err := frontend.New(filename)
 	if err != nil {
 		return nil, err
+	}
+	if t, ok := resolveCreationDate(&cfg); ok {
+		// Three sources of non-determinism in the PDF: the InfoDict
+		// CreationDate (defaulted from d.CreationDate in Finish), the
+		// XMP CreateDate / ModifyDate / MetadataDate (also driven by
+		// d.CreationDate), and the XMP DocumentID / InstanceID UUIDs
+		// (regenerated per run by default). Fix all three. The trailer
+		// /ID is an MD5 of the xref byte content and falls out as a
+		// function of these.
+		fe.Doc.CreationDate = t
+		fe.Doc.PDFWriter.InfoDict["CreationDate"] = formatPDFDate(t)
+		fe.Doc.SuppressInfo = true
 	}
 	fe.Doc.Format = cfg.format
 	// HTML/CSS uses RGB colors, so load sRGB profile for PDF/A-3b
