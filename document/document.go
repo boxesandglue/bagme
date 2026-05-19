@@ -27,12 +27,21 @@ type config struct {
 	creationDate  *time.Time
 }
 
-// WithPDFUA enables PDF/UA (accessible PDF) output. All HTML elements are
-// automatically tagged with their corresponding PDF structure roles (e.g.
-// h1→H1, p→P, li→LI) so that screen readers and assistive technologies can
-// interpret the content.
+// WithPDFUA enables PDF/UA-1 (ISO 14289-1, on PDF 1.7) output. All HTML
+// elements are automatically tagged with their corresponding PDF structure
+// roles (e.g. h1→H1, p→P, li→LI) so that screen readers and assistive
+// technologies can interpret the content.
 func WithPDFUA() Option {
 	return func(c *config) { c.format = document.FormatPDFUA }
+}
+
+// WithPDFUA2 enables PDF/UA-2 (ISO 14289-2, on PDF 2.0) output. Structure
+// elements use the HTML5 namespace for HTML-equivalent roles (lowercase p,
+// h1–h6, figure, table, …) with a RoleMapNS to the PDF 2.0 Standard
+// Structure Namespace. Title and Language are required, the same as for
+// WithPDFUA().
+func WithPDFUA2() Option {
+	return func(c *config) { c.format = document.FormatPDFUA2 }
 }
 
 // WithPDFA3b enables PDF/A-3b output.
