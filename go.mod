@@ -3,9 +3,9 @@ module github.com/boxesandglue/bagme
 go 1.24.0
 
 require (
-	github.com/boxesandglue/boxesandglue v0.2.27
-	github.com/boxesandglue/csshtml v0.0.11
-	github.com/boxesandglue/htmlbag v0.0.25
+	github.com/boxesandglue/boxesandglue v0.2.28
+	github.com/boxesandglue/csshtml v0.0.12
+	github.com/boxesandglue/htmlbag v0.0.26
 )
 
 require (

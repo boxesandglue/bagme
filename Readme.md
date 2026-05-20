@@ -3,6 +3,14 @@
 bagme is a Go library that renders HTML/CSS to PDF using the [boxes and glue](https://boxesandglue.dev) typesetting engine.
 It implements TeX's line-breaking and page-breaking algorithms, so you get high-quality typesetting with almost no effort.
 
+<p align="center">
+  <a href="https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/multipage">
+    <img src="https://raw.githubusercontent.com/boxesandglue/boxesandglue-examples/main/bagme/basic/multipage/result.png" width="320" alt="Multi-page HTML rendered to PDF by bagme">
+  </a>
+</p>
+
+Ready-to-run examples (HTML → PDF, accessible PDF/UA, tables, positioned snippets, multi-page documents) live in the [boxesandglue-examples repository](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme).
+
 ## Installation
 
 ```bash
@@ -96,9 +104,21 @@ func main() {
 
 ## Limitations
 
-* No automatic page breaks within a single paragraph (breaks happen between block elements)
 * Limited CSS support compared to a full browser engine
 * No floats or flexbox/grid layout
+
+## Examples
+
+Source + rendered PDF + preview PNG for every entry in [boxesandglue-examples/bagme](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme):
+
+Example | What it shows
+------- | -------------
+[Simple](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/simple) | Basic HTML rendering with CSS styling, lists and code blocks
+[Border](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/border) | Borders, border-radius and background colors on elements
+[Accessible PDF](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/accessible) | PDF/UA output with automatic structure tagging for screen readers
+[Multipage](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/multipage) | Automatic page breaks, forced breaks with `page-break-before`
+[Positioned](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/position) | Manual placement with `OutputAt` using absolute coordinates
+[Table](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/table) | Tables with repeating headers across page breaks
 
 ## Contact
 
