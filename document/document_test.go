@@ -433,14 +433,28 @@ func TestWithZUGFeRDSetsFormat(t *testing.T) {
 	var cfg config
 	opt := WithZUGFeRD([]byte("<xml/>"), "BASIC")
 	opt(&cfg)
-	if cfg.format != document.FormatPDFA3b {
-		t.Errorf("WithZUGFeRD should set format to PDF/A-3b, got %d", cfg.format)
+	if !cfg.format.IsPDFA() || cfg.format.PDFA.Part != 3 || cfg.format.PDFA.Level != document.PDFALevelB {
+		t.Errorf("WithZUGFeRD should set PDF/A-3b sub-conformance, got %+v", cfg.format)
 	}
 	if len(cfg.attachments) != 1 {
 		t.Fatalf("expected 1 attachment, got %d", len(cfg.attachments))
 	}
 	if cfg.attachments[0].Name != "factur-x.xml" {
 		t.Errorf("expected attachment name 'factur-x.xml', got %q", cfg.attachments[0].Name)
+	}
+}
+
+// WithZUGFeRD must compose with WithPDFUA(): the PDF should declare both
+// PDF/A-3b (archival + embedded XML) and PDF/UA-1 (accessibility).
+func TestWithZUGFeRDComposesWithPDFUA(t *testing.T) {
+	var cfg config
+	WithPDFUA()(&cfg)
+	WithZUGFeRD([]byte("<xml/>"), "BASIC")(&cfg)
+	if !cfg.format.IsPDFA() {
+		t.Errorf("PDF/A sub-conformance lost after composing with WithPDFUA")
+	}
+	if !cfg.format.IsPDFUA() {
+		t.Errorf("PDF/UA sub-conformance lost after composing with WithZUGFeRD")
 	}
 }
 

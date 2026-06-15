@@ -30,9 +30,13 @@ type config struct {
 // WithPDFUA enables PDF/UA-1 (ISO 14289-1, on PDF 1.7) output. All HTML
 // elements are automatically tagged with their corresponding PDF structure
 // roles (e.g. h1→H1, p→P, li→LI) so that screen readers and assistive
-// technologies can interpret the content.
+// technologies can interpret the content. Composable with PDF/A:
+// New(WithPDFUA(), WithPDFA3b(), …) produces a document that declares
+// both standards.
 func WithPDFUA() Option {
-	return func(c *config) { c.format = document.FormatPDFUA }
+	return func(c *config) {
+		c.format.PDFUA = &document.PDFUAConf{Part: 1, Rev: "2014"}
+	}
 }
 
 // WithPDFUA2 enables PDF/UA-2 (ISO 14289-2, on PDF 2.0) output. Structure
@@ -41,22 +45,30 @@ func WithPDFUA() Option {
 // Structure Namespace. Title and Language are required, the same as for
 // WithPDFUA().
 func WithPDFUA2() Option {
-	return func(c *config) { c.format = document.FormatPDFUA2 }
+	return func(c *config) {
+		c.format.PDFUA = &document.PDFUAConf{Part: 2, Rev: "2024"}
+	}
 }
 
-// WithPDFA3b enables PDF/A-3b output.
+// WithPDFA3b enables PDF/A-3b output. Composable with WithPDFUA().
 func WithPDFA3b() Option {
-	return func(c *config) { c.format = document.FormatPDFA3b }
+	return func(c *config) {
+		c.format.PDFA = &document.PDFAConf{Part: 3, Level: document.PDFALevelB}
+	}
 }
 
 // WithPDFX3 enables PDF/X-3 output.
 func WithPDFX3() Option {
-	return func(c *config) { c.format = document.FormatPDFX3 }
+	return func(c *config) {
+		c.format.PDFX = &document.PDFXConf{Variant: "X-3"}
+	}
 }
 
 // WithPDFX4 enables PDF/X-4 output.
 func WithPDFX4() Option {
-	return func(c *config) { c.format = document.FormatPDFX4 }
+	return func(c *config) {
+		c.format.PDFX = &document.PDFXConf{Variant: "X-4"}
+	}
 }
 
 // WithAttachment embeds a file in the PDF document. For PDF/A-3b documents
@@ -116,7 +128,10 @@ func WithZUGFeRD(xmlData []byte, profile string) Option {
 		profile = "BASIC WL"
 	}
 	return func(c *config) {
-		c.format = document.FormatPDFA3b
+		// Additive: only the PDF/A sub-conformance is set. If the caller
+		// also passed WithPDFUA()/WithPDFUA2(), that PDFUA setting is
+		// preserved — the resulting PDF declares both standards.
+		c.format.PDFA = &document.PDFAConf{Part: 3, Level: document.PDFALevelB}
 		c.attachments = append(c.attachments, document.Attachment{
 			Name:        "factur-x.xml",
 			Description: "Factur-X/ZUGFeRD invoice",
@@ -282,9 +297,9 @@ func New(filename string, opts ...Option) (*Document, error) {
 		fe.Doc.SuppressInfo = true
 	}
 	fe.Doc.Format = cfg.format
-	// HTML/CSS uses RGB colors, so load sRGB profile for PDF/A-3b
-	// instead of the default CMYK profile.
-	if cfg.format == document.FormatPDFA3b {
+	// HTML/CSS uses RGB colors, so load sRGB profile for any PDF/A
+	// conformance instead of the default CMYK profile.
+	if cfg.format.IsPDFA() {
 		fe.Doc.LoadSRGBColorprofile()
 	}
 	for _, a := range cfg.attachments {
