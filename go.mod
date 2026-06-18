@@ -3,9 +3,9 @@ module github.com/boxesandglue/bagme
 go 1.24.0
 
 require (
-	github.com/boxesandglue/boxesandglue v0.2.31
+	github.com/boxesandglue/boxesandglue v0.2.32
 	github.com/boxesandglue/csshtml v0.0.12
-	github.com/boxesandglue/htmlbag v0.0.30
+	github.com/boxesandglue/htmlbag v0.0.31
 )
 
 require (
@@ -14,7 +14,7 @@ require (
 	github.com/boxesandglue/baseline-pdf v1.1.16 // indirect
 	github.com/boxesandglue/gofpdi v1.0.23 // indirect
 	github.com/boxesandglue/svgreader v0.0.4 // indirect
-	github.com/boxesandglue/textshape v0.0.12 // indirect
+	github.com/boxesandglue/textshape v0.0.13 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.5.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
