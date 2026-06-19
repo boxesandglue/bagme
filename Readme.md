@@ -1,3 +1,5 @@
+[![Explore in Constellation](https://img.shields.io/badge/Explore%20in-Constellation-blue)](https://constellation.speedata.de)
+
 # bagme - boxes and glue made easy
 
 bagme is a Go library that renders HTML/CSS to PDF using the [boxes and glue](https://boxesandglue.dev) typesetting engine.
@@ -119,6 +121,12 @@ Example | What it shows
 [Multipage](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/multipage) | Automatic page breaks, forced breaks with `page-break-before`
 [Positioned](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/position) | Manual placement with `OutputAt` using absolute coordinates
 [Table](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/table) | Tables with repeating headers across page breaks
+
+## Ecosystem
+
+bagme is part of a broader ecosystem of PDF, typesetting and publishing technologies.
+
+**[Explore the constellation →](https://constellation.speedata.de)**
 
 ## Contact
 
