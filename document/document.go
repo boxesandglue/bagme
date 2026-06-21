@@ -248,6 +248,14 @@ func (d *Document) Headings() []HeadingEntry {
 	return d.cssbuilder.Headings
 }
 
+// SetGenerateOutline controls whether RenderPages emits a PDF outline
+// (bookmarks) from the document's headings and -bag-bookmark elements.
+// Generation is on by default; pass false to suppress it (e.g. for
+// byte-deterministic output). Call before RenderPages.
+func (d *Document) SetGenerateOutline(on bool) {
+	d.cssbuilder.GenerateOutline = on
+}
+
 // NewPage starts a new page. Only needed in OutputAt mode for manual
 // multi-page documents.
 func (d *Document) NewPage() error {
