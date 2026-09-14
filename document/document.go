@@ -9,7 +9,6 @@ import (
 	"github.com/boxesandglue/boxesandglue/backend/bag"
 	"github.com/boxesandglue/boxesandglue/backend/document"
 	"github.com/boxesandglue/boxesandglue/frontend"
-	"github.com/boxesandglue/csshtml"
 	"github.com/boxesandglue/htmlbag"
 )
 
@@ -268,11 +267,12 @@ func (d *Document) AttachFile(a Attachment) {
 }
 
 // NewWithFrontend creates a document from an existing boxes and glue frontend
-// document and CSS parser. The default fonts (monospace, sans, serif) are loaded.
-func NewWithFrontend(fe *frontend.Document, cssparser *csshtml.CSS) (*Document, error) {
+// document. A CSS parser with the default stylesheet is set up internally. The
+// default fonts (monospace, sans, serif) are loaded.
+func NewWithFrontend(fe *frontend.Document) (*Document, error) {
 	d := &Document{}
 	var err error
-	d.cssbuilder, err = htmlbag.New(fe, cssparser)
+	d.cssbuilder, err = htmlbag.New(fe, htmlbag.NewCSSParserWithDefaults())
 	if err != nil {
 		return nil, err
 	}
@@ -316,8 +316,7 @@ func New(filename string, opts ...Option) (*Document, error) {
 	for _, ext := range cfg.xmpExtensions {
 		fe.Doc.AddXMPExtension(ext)
 	}
-	cs := csshtml.NewCSSParserWithDefaults()
-	return NewWithFrontend(fe, cs)
+	return NewWithFrontend(fe)
 }
 
 // Finish writes and closes the PDF file.
