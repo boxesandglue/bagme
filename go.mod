@@ -3,8 +3,8 @@ module github.com/boxesandglue/bagme
 go 1.25.0
 
 require (
-	github.com/boxesandglue/boxesandglue v0.2.75
-	github.com/boxesandglue/htmlbag v0.0.74
+	github.com/boxesandglue/boxesandglue v0.2.76
+	github.com/boxesandglue/htmlbag v0.0.77
 )
 
 require (
