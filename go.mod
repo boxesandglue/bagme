@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/boxesandglue/boxesandglue v0.2.86
-	github.com/boxesandglue/htmlbag v0.0.88
+	github.com/boxesandglue/htmlbag v0.0.89
 )
 
 require (
