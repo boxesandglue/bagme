@@ -8,8 +8,8 @@ github.com/boxesandglue/boxesandglue v0.2.87 h1:NNu9gYfRMcKz/ib6hfKUvrcwshjECjQM
 github.com/boxesandglue/boxesandglue v0.2.87/go.mod h1:w+OcT7mRUJRpw7Z5EVRoU09Ykj2kZqD3Gi+1srr991k=
 github.com/boxesandglue/gofpdi v1.0.24 h1:7Q0v4dkmByemj8PyIYi8ylIYrUnNhY/L/Ed6MRGwlro=
 github.com/boxesandglue/gofpdi v1.0.24/go.mod h1:U26faV5/yQf8ivQS0Tt2TdpU7Y8X9wpLLB2T/5oI+u4=
-github.com/boxesandglue/htmlbag v0.0.90 h1:K49WlRWfyPx7GI7Tp4KElPDU0mi3R677f3NxQ6rFQIQ=
-github.com/boxesandglue/htmlbag v0.0.90/go.mod h1:6lA4dcCAG1cFteh6qI+NVDz8SxCXrvgBVd0GcfoO5xI=
+github.com/boxesandglue/htmlbag v0.0.91 h1:TmJAg+251XRRGOOhLGIKyy21r0K6YgT36vN4dc1N6Z0=
+github.com/boxesandglue/htmlbag v0.0.91/go.mod h1:6lA4dcCAG1cFteh6qI+NVDz8SxCXrvgBVd0GcfoO5xI=
 github.com/boxesandglue/svgreader v0.0.6 h1:n7UaYsMlBzsW74BNUJ+vn9vc0ITJM4iZ1z4pYNYINrg=
 github.com/boxesandglue/svgreader v0.0.6/go.mod h1:EGGvqEiNQsKBrnLYqDfMznN044fFcKkCHrXDLYJ56IY=
 github.com/boxesandglue/textshape v0.0.18 h1:UItAnfJtHpMuJaZ3yFiolGK8bH0KDWxHkHKiIN28GsA=
