@@ -1,4 +1,4 @@
-[![Explore in Constellation](https://img.shields.io/badge/Explore%20in-Constellation-blue)](https://constellation.speedata.de)
+[![Explore in Constellation](https://img.shields.io/badge/Explore%20in-Constellation-blue)](https://constellation.speedata.de/#bagme)
 
 # bagme - boxes and glue made easy
 
@@ -18,6 +18,8 @@ Ready-to-run examples (HTML → PDF, accessible PDF/UA, tables, positioned snipp
 ```bash
 go get github.com/boxesandglue/bagme
 ```
+
+The [bagme manual](https://boxesandglue.dev/bagme/) describes the API, the [htmlbag manual](https://boxesandglue.dev/htmlbag/) the supported HTML and CSS.
 
 ## Render a complete HTML document
 
@@ -106,8 +108,8 @@ func main() {
 
 ## Limitations
 
-* Limited CSS support compared to a full browser engine
-* No floats or flexbox/grid layout
+* Limited CSS support compared to a full browser engine, see the [htmlbag limitations](https://boxesandglue.dev/htmlbag/limitations/)
+* No flexbox or grid layout
 
 ## Examples
 
@@ -121,16 +123,19 @@ Example | What it shows
 [Multipage](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/multipage) | Automatic page breaks, forced breaks with `page-break-before`
 [Positioned](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/position) | Manual placement with `OutputAt` using absolute coordinates
 [Table](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/table) | Tables with repeating headers across page breaks
+[Math](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/math) | Inline and display MathML, tagged for PDF/UA-2
+[Barcode](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/basic/barcode) | QR code, EAN-13 and Code 128 with the `<barcode>` element
+[ZUGFeRD](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/formats/zugferd) | ZUGFeRD / Factur-X invoice as PDF/A-3b with the invoice XML attached
+[Accessible ZUGFeRD](https://github.com/boxesandglue/boxesandglue-examples/tree/main/bagme/formats/zugferd-accessible) | The same invoice, also tagged as PDF/UA-1
 
 ## Ecosystem
 
 bagme is part of a broader ecosystem of PDF, typesetting and publishing technologies.
 
-**[Explore the constellation →](https://constellation.speedata.de)**
+**[Explore the constellation →](https://constellation.speedata.de/#bagme)**
 
 ## Contact
 
 Contact: <gundlach@speedata.de><br>
 License: New BSD License<br>
-Status: Beta — API may change.<br>
 Mastodon: [boxesandglue@typo.social](https://typo.social/@boxesandglue)
