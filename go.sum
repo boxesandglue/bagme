@@ -4,12 +4,12 @@ github.com/andybalholm/cascadia v1.3.4 h1:vM2lgh0Vru9Vwyfm4cQqWP2HHMW0u0+2PAW7Q3
 github.com/andybalholm/cascadia v1.3.4/go.mod h1:BLRmbRjpEtNKieZOCCvYj4RqN+KRA41GBe/5O+G93kM=
 github.com/boxesandglue/baseline-pdf v1.1.27 h1:dyUbAPCkRZMUDBFyEICgapfmeKZ9TJ48F5CqG590TqA=
 github.com/boxesandglue/baseline-pdf v1.1.27/go.mod h1:N/SYLHgCTQynOvwxkGABOQacGqJLEuvhFWVlV3ipDkQ=
-github.com/boxesandglue/boxesandglue v0.2.89 h1:25ysO1a7VBuWAGXoGYg0hLxPJiOd3OuOqcCy4hYHpkk=
-github.com/boxesandglue/boxesandglue v0.2.89/go.mod h1:w+OcT7mRUJRpw7Z5EVRoU09Ykj2kZqD3Gi+1srr991k=
+github.com/boxesandglue/boxesandglue v0.2.91 h1:SCNJ0i2aTukY5Wc3/u86B16Wo5+Bz+niATL84KzizkQ=
+github.com/boxesandglue/boxesandglue v0.2.91/go.mod h1:blrrVNAtYzPlrveDCdpOLIjrm1Ht4NIBrLrehdM0Ols=
 github.com/boxesandglue/gofpdi v1.0.24 h1:7Q0v4dkmByemj8PyIYi8ylIYrUnNhY/L/Ed6MRGwlro=
 github.com/boxesandglue/gofpdi v1.0.24/go.mod h1:U26faV5/yQf8ivQS0Tt2TdpU7Y8X9wpLLB2T/5oI+u4=
-github.com/boxesandglue/htmlbag v0.0.93 h1:aQZQH8howtmH5Y3LL77XMVmAdUT7WB5RWtEkZR0BrVE=
-github.com/boxesandglue/htmlbag v0.0.93/go.mod h1:tU3LyBZkP4/1VOa+sfgSL7f0bBhp7Ofa6gtil3f/6DA=
+github.com/boxesandglue/htmlbag v0.0.94 h1:wi70g2lCb4zvVdBWYa14Eeqgh8F9L7ejpVGp+nNF1Cs=
+github.com/boxesandglue/htmlbag v0.0.94/go.mod h1:vpf02QL3nXIgKR9BfPdanDDHXRjW8L9ovo/3wAFHdsI=
 github.com/boxesandglue/svgreader v0.0.6 h1:n7UaYsMlBzsW74BNUJ+vn9vc0ITJM4iZ1z4pYNYINrg=
 github.com/boxesandglue/svgreader v0.0.6/go.mod h1:EGGvqEiNQsKBrnLYqDfMznN044fFcKkCHrXDLYJ56IY=
 github.com/boxesandglue/textshape v0.0.18 h1:UItAnfJtHpMuJaZ3yFiolGK8bH0KDWxHkHKiIN28GsA=
@@ -22,8 +22,8 @@ github.com/speedata/barcode v1.1.1 h1:pEBt6VWg2tG2rOhDePLCub4bZWP6bHyGJhclwyt6Ox
 github.com/speedata/barcode v1.1.1/go.mod h1:BNwJ2io3ZgecUqunSUFAlfnnI8YTh3SLSHZgs5vaoTY=
 github.com/speedata/css v1.0.5 h1:eJms65mtBVtWx3YsRn7crNfZSNMB1/wb2f9fhx2hP7o=
 github.com/speedata/css v1.0.5/go.mod h1:xRFJesAMD/T6sqUeQUs5cqwuV0MwPbj7W/3ghmCo38g=
-github.com/speedata/hyphenation v1.0.3 h1:zhCgxf5orzVDVXhd1Q1KElfpZQt4l8JTsttENnJxFss=
-github.com/speedata/hyphenation v1.0.3/go.mod h1:H//ORhH5NNDACrRQkyw9ny+9XoyjVLbEObfu2K7bcLI=
+github.com/speedata/hyphenation v1.0.4 h1:Rv3MfNDJ5PqjZt/ce2MZY7BO+bicyMqhR5SRKITopEo=
+github.com/speedata/hyphenation v1.0.4/go.mod h1:H//ORhH5NNDACrRQkyw9ny+9XoyjVLbEObfu2K7bcLI=
 github.com/speedata/pdfdisassembler v0.0.7 h1:n8gPHlHun8l8JmdB+HORG1SFipQbMnqwoW2f5w/lZYI=
 github.com/speedata/pdfdisassembler v0.0.7/go.mod h1:KOflh2TQuVxcJLjZdkA0YqGi1HOCUNlrM4/XzdliQ+Y=
 golang.org/x/net v0.57.0 h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE=

@@ -3,8 +3,8 @@ module github.com/boxesandglue/bagme
 go 1.25.0
 
 require (
-	github.com/boxesandglue/boxesandglue v0.2.89
-	github.com/boxesandglue/htmlbag v0.0.93
+	github.com/boxesandglue/boxesandglue v0.2.91
+	github.com/boxesandglue/htmlbag v0.0.94
 )
 
 require (
@@ -18,7 +18,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/speedata/barcode v1.1.1 // indirect
 	github.com/speedata/css v1.0.5 // indirect
-	github.com/speedata/hyphenation v1.0.3 // indirect
+	github.com/speedata/hyphenation v1.0.4 // indirect
 	github.com/speedata/pdfdisassembler v0.0.7 // indirect
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
