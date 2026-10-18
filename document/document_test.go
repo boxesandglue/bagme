@@ -448,6 +448,25 @@ func TestWithZUGFeRDSetsFormat(t *testing.T) {
 	}
 }
 
+// MINIMUM and BASIC WL attach their XML as Data, the other profiles as
+// Alternative, as Factur-X and Mustang's exporter do.
+func TestWithZUGFeRDAFRelationship(t *testing.T) {
+	for profile, want := range map[string]string{
+		"MINIMUM":  "Data",
+		"BASIC WL": "Data",
+		"BASICWL":  "Data",
+		"BASIC":    "Alternative",
+		"EN16931":  "Alternative",
+		"EXTENDED": "Alternative",
+	} {
+		var cfg config
+		WithZUGFeRD([]byte("<xml/>"), profile)(&cfg)
+		if got := cfg.attachments[0].AFRelationship; got != want {
+			t.Errorf("%s: AFRelationship %q, want %q", profile, got, want)
+		}
+	}
+}
+
 func TestWithZUGFeRDXRechnungFilename(t *testing.T) {
 	var cfg config
 	WithZUGFeRD([]byte("<xml/>"), "XRECHNUNG")(&cfg)

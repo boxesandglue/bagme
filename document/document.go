@@ -131,16 +131,23 @@ func WithZUGFeRD(xmlData []byte, profile string) Option {
 	if profile == "XRECHNUNG" {
 		filename = "xrechnung.xml"
 	}
+	// MINIMUM and BASIC WL carry too little for a full invoice, so their
+	// XML is data about the PDF, not an alternative to it.
+	afRelationship := "Alternative"
+	if profile == "MINIMUM" || profile == "BASIC WL" {
+		afRelationship = "Data"
+	}
 	return func(c *config) {
 		// Additive: only the PDF/A sub-conformance is set. If the caller
 		// also passed WithPDFUA()/WithPDFUA2(), that PDFUA setting is
 		// preserved — the resulting PDF declares both standards.
 		c.format.PDFA = &document.PDFAConf{Part: 3, Level: document.PDFALevelB}
 		c.attachments = append(c.attachments, document.Attachment{
-			Name:        filename,
-			Description: "Factur-X/ZUGFeRD invoice",
-			MimeType:    "text/xml",
-			Data:        xmlData,
+			Name:           filename,
+			Description:    "Factur-X/ZUGFeRD invoice",
+			MimeType:       "text/xml",
+			Data:           xmlData,
+			AFRelationship: afRelationship,
 		})
 		// The urn:ferd namespace with the prefix zf is ZUGFeRD 1.0. Factur-X
 		// and ZUGFeRD 2 use urn:factur-x with the prefix fx.
