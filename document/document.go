@@ -112,9 +112,10 @@ func formatPDFDate(t time.Time) string {
 	return fmt.Sprintf("(D:%s%s%s'%s')", s[:14], s[14:15], s[15:17], s[17:19])
 }
 
-// WithZUGFeRD creates a ZUGFeRD/Factur-X compliant PDF. It sets the format to
-// PDF/A-3b, attaches the XML invoice data as "factur-x.xml", and adds the
-// required XMP extension schema metadata.
+// WithZUGFeRD creates a Factur-X / ZUGFeRD 2 compliant PDF. It sets the
+// format to PDF/A-3b, attaches the XML invoice data as "factur-x.xml" (as
+// "xrechnung.xml" for the XRECHNUNG profile), and adds the Factur-X XMP
+// extension schema.
 //
 // The profile parameter specifies the Factur-X conformance level:
 // "MINIMUM", "BASIC WL", "BASIC", "EN 16931" (or "EN16931"), "EXTENDED", "XRECHNUNG".
@@ -126,30 +127,36 @@ func WithZUGFeRD(xmlData []byte, profile string) Option {
 	case "BASICWL", "BASIC WL":
 		profile = "BASIC WL"
 	}
+	filename := "factur-x.xml"
+	if profile == "XRECHNUNG" {
+		filename = "xrechnung.xml"
+	}
 	return func(c *config) {
 		// Additive: only the PDF/A sub-conformance is set. If the caller
 		// also passed WithPDFUA()/WithPDFUA2(), that PDFUA setting is
 		// preserved — the resulting PDF declares both standards.
 		c.format.PDFA = &document.PDFAConf{Part: 3, Level: document.PDFALevelB}
 		c.attachments = append(c.attachments, document.Attachment{
-			Name:        "factur-x.xml",
+			Name:        filename,
 			Description: "Factur-X/ZUGFeRD invoice",
 			MimeType:    "text/xml",
 			Data:        xmlData,
 		})
+		// The urn:ferd namespace with the prefix zf is ZUGFeRD 1.0. Factur-X
+		// and ZUGFeRD 2 use urn:factur-x with the prefix fx.
 		c.xmpExtensions = append(c.xmpExtensions, document.XMPExtension{
-			Schema:       "ZUGFeRD PDFA Extension Schema",
-			NamespaceURI: "urn:ferd:pdfa:CrossIndustryDocument:invoice:1p0#",
-			Prefix:       "zf",
+			Schema:       "Factur-X PDFA Extension Schema",
+			NamespaceURI: "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#",
+			Prefix:       "fx",
 			Properties: []document.XMPExtensionProperty{
-				{Name: "DocumentFileName", ValueType: "Text", Category: "external", Description: "name of the embedded XML invoice file"},
-				{Name: "DocumentType", ValueType: "Text", Category: "external", Description: "INVOICE"},
-				{Name: "Version", ValueType: "Text", Category: "external", Description: "The actual version of the ZUGFeRD data"},
-				{Name: "ConformanceLevel", ValueType: "Text", Category: "external", Description: "The conformance level of the ZUGFeRD data"},
+				{Name: "DocumentFileName", ValueType: "Text", Category: "external", Description: "The name of the embedded XML document"},
+				{Name: "DocumentType", ValueType: "Text", Category: "external", Description: "The type of the hybrid document in capital letters, e.g. INVOICE or ORDER"},
+				{Name: "Version", ValueType: "Text", Category: "external", Description: "The actual version of the standard applying to the embedded XML document"},
+				{Name: "ConformanceLevel", ValueType: "Text", Category: "external", Description: "The conformance level of the embedded XML document"},
 			},
 			Values: map[string]string{
 				"ConformanceLevel": profile,
-				"DocumentFileName": "factur-x.xml",
+				"DocumentFileName": filename,
 				"DocumentType":     "INVOICE",
 				"Version":          "1.0",
 			},

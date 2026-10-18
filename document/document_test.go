@@ -442,6 +442,21 @@ func TestWithZUGFeRDSetsFormat(t *testing.T) {
 	if cfg.attachments[0].Name != "factur-x.xml" {
 		t.Errorf("expected attachment name 'factur-x.xml', got %q", cfg.attachments[0].Name)
 	}
+	ext := cfg.xmpExtensions[0]
+	if ext.NamespaceURI != "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#" || ext.Prefix != "fx" {
+		t.Errorf("expected the Factur-X namespace with prefix fx, got %q with prefix %q", ext.NamespaceURI, ext.Prefix)
+	}
+}
+
+func TestWithZUGFeRDXRechnungFilename(t *testing.T) {
+	var cfg config
+	WithZUGFeRD([]byte("<xml/>"), "XRECHNUNG")(&cfg)
+	if cfg.attachments[0].Name != "xrechnung.xml" {
+		t.Errorf("expected attachment name 'xrechnung.xml', got %q", cfg.attachments[0].Name)
+	}
+	if got := cfg.xmpExtensions[0].Values["DocumentFileName"]; got != "xrechnung.xml" {
+		t.Errorf("expected DocumentFileName 'xrechnung.xml', got %q", got)
+	}
 }
 
 // WithZUGFeRD must compose with WithPDFUA(): the PDF should declare both
