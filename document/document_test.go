@@ -209,6 +209,28 @@ func TestRenderPages(t *testing.T) {
 	}
 }
 
+// The @page rule of a style element has to reach the first page.
+func TestRenderPagesPageRuleInStyleElement(t *testing.T) {
+	d, err := New(tempPDF(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	html := `<html><head><style>@page { size: a5; margin: 2cm; }</style></head><body><p>Hello</p></body></html>`
+	if err := d.RenderPages(html); err != nil {
+		t.Fatal(err)
+	}
+	ps, err := d.PageSize()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := bag.MustSP("148mm"); ps.Width != want {
+		t.Errorf("page width %s, want %s", ps.Width, want)
+	}
+	if err := d.Finish(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestOutputAt(t *testing.T) {
 	filename := tempPDF(t)
 	d, err := New(filename)

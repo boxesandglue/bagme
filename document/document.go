@@ -244,9 +244,8 @@ func (d *Document) OutputAt(html string, width, x, y bag.ScaledPoint) error {
 // Do not mix RenderPages and OutputAt in the same document.
 func (d *Document) RenderPages(html string) error {
 	d.syncCallbacks()
-	if err := d.cssbuilder.InitPage(); err != nil {
-		return err
-	}
+	// No InitPage before HTMLToText: only HTMLToText parses the style
+	// elements, and the first page needs their @page rules.
 	te, err := d.cssbuilder.HTMLToText(html)
 	if err != nil {
 		return err
