@@ -3,17 +3,17 @@ module github.com/boxesandglue/bagme
 go 1.25.0
 
 require (
-	github.com/boxesandglue/boxesandglue v0.2.98
-	github.com/boxesandglue/htmlbag v0.0.99
+	github.com/boxesandglue/boxesandglue v0.2.100
+	github.com/boxesandglue/htmlbag v0.0.101
 )
 
 require (
 	github.com/PuerkitoBio/goquery v1.12.0 // indirect
 	github.com/andybalholm/brotli v1.2.7 // indirect
 	github.com/andybalholm/cascadia v1.3.4 // indirect
-	github.com/boxesandglue/baseline-pdf v1.1.32 // indirect
+	github.com/boxesandglue/baseline-pdf v1.1.33 // indirect
 	github.com/boxesandglue/gofpdi v1.0.26 // indirect
-	github.com/boxesandglue/svgreader v0.0.6 // indirect
+	github.com/boxesandglue/svgreader v0.0.7 // indirect
 	github.com/boxesandglue/textshape v0.0.19 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
